@@ -2,6 +2,7 @@ import datetime
 from email.utils import parsedate_tz
 from subprocess import getstatusoutput
 from pprint import pprint
+import csv
 
 import path
 from exdict import Exdict
@@ -72,18 +73,44 @@ class Commits(list):
         return list(set([x.commiter for x in self]))
 
     @property
-    def accumalated_changes(self):
+    def accumulated_changes(self):
         d = Exdict(add=0, sub=0, churn=0)
         for commit in self:
-            d.add += commit.add
-            d.sub += commit.sub
-            d.churn += d.churn
+            d.add += commit.changes.add
+            d.sub += commit.changes.sub
+            d.churn += commit.changes.churn
+        d.count = len(self)
         return d
+
+    def report(self, date=None):
+        if date:
+            if isinstance(date, str):
+                date = datetime.datetime.strptime(date, "%d/%M/%Y")
+            analysis = self.from_date(date)
+        else:
+            analysis = self
+        d = Exdict()
+        for dev in analysis.developers:
+            d[dev] = analysis.by_developer(dev).accumulated_changes
+        return d
+
+    def report_to_csv(self, filename, date=None):
+        report = self.report(date=date)
+        with open(filename, 'w', newline='\n') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            writer.writerow(["Developer", "Lines Added", "Lines Removed", "Lines Changed", "Total Commits"])
+            for dev in report:
+                writer.writerow([dev, report[dev].add, report[dev].sub, report[dev].churn, report[dev].count])
+        return report
+
 
 if __name__ == "__main__":
     c = Commits()
     c.load_commits("/home/cristiano/repo/gitinfo/")
-    pprint(c.dict())
-    pprint(c.from_date(datetime.datetime(2018,11,1)).dict())
-    print(c.developers)
-    pprint(c.by_developer(c.developers[0]).dict())
+    # pprint(c.from_date(datetime.datetime(2018,11,1)).dict())
+    # print(c.developers)
+    # pprint(c.by_developer(c.developers[0]).dict())
+    # pprint(c.by_developer(c.developers[0]).accumulated_changes)
+    pprint(c.report(date="01/10/2018"))
+    c.report_to_csv('/tmp/teste.csv', date="01/10/2018")
+
