@@ -1,11 +1,13 @@
+import os
 import datetime
 from email.utils import parsedate_tz
-from subprocess import getstatusoutput
+from subprocess import getstatusoutput, run
+import subprocess
 from pprint import pprint
-import csv
 
-import path
-from exdict import Exdict
+import csv
+import argparse
+
 
 def cmd(s):
     sts, out = getstatusoutput(s)
@@ -33,11 +35,15 @@ class Commit:
 #        ret = cmd("git log --oneline  --numstat {} -n 1".format(self.sha1))
 #        ret = ret.split("\n")[1:]
 #        ret = [x.split() for x in ret]
-        ret = cmd("git show {} --word-diff".format(self.sha1)).split("\n")
+        try:
+            ret = cmd("git show {} --word-diff".format(self.sha1)).split("\n")
+        except Exception:
+            # workaroud for latin encoded files on windows
+            ret = str(subprocess.run(["git","show", self.sha1,  "--word-diff"], capture_output=True).stdout).split("\\n")
         total_add = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT not in k and SUBOUT not in k, ret)))
         total_sub = len(list(filter(lambda k: ADDOUT not in k and ADDOUT not in k and SUBOUT in k and SUBOUT in k, ret)))
         churn = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT in k and SUBOUT in k, ret)))
-        self.changes = Exdict(add=total_add, sub=total_sub, churn=churn)
+        self.changes = dict(add=total_add, sub=total_sub, churn=churn)
 
 
     def __repr__(self):
@@ -53,11 +59,16 @@ class Commit:
 
 class Commits(list):
     def load_commits(self, wd=None):
-        wd = wd or path.getcwdu()
-        with path.Path(wd):
-            commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"300 days ago\" ").split("\n")]
-            for commit in commits:
-                self.append(Commit(*commit))
+        if wd:
+            cwd = os.getcwd()
+            os.chdir(wd)
+        else:
+            cwd = None
+        commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"300 days ago\" ").split("\n")]
+        for commit in commits:
+            self.append(Commit(*commit))
+        if cwd:
+            os.chdir(cwd)
 
     def dict(self):
         return [x.dict() for x in self]
@@ -74,12 +85,12 @@ class Commits(list):
 
     @property
     def accumulated_changes(self):
-        d = Exdict(add=0, sub=0, churn=0)
+        d = dict(add=0, sub=0, churn=0)
         for commit in self:
-            d.add += commit.changes.add
-            d.sub += commit.changes.sub
-            d.churn += commit.changes.churn
-        d.count = len(self)
+            d["add"] += commit.changes["add"]
+            d["sub"] += commit.changes["sub"]
+            d["churn"] += commit.changes["churn"]
+        d["count"] = len(self)
         return d
 
     def report(self, date=None):
@@ -89,7 +100,7 @@ class Commits(list):
             analysis = self.from_date(date)
         else:
             analysis = self
-        d = Exdict()
+        d = dict()
         for dev in analysis.developers:
             d[dev] = analysis.by_developer(dev).accumulated_changes
         return d
@@ -100,17 +111,30 @@ class Commits(list):
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerow(["Developer", "Lines Added", "Lines Removed", "Lines Changed", "Total Commits"])
             for dev in report:
-                writer.writerow([dev, report[dev].add, report[dev].sub, report[dev].churn, report[dev].count])
+                writer.writerow([dev, report[dev]["add"], report[dev]["sub"], report[dev]["churn"], report[dev]["count"]])
         return report
+
+    def report_to_screen(self):
+        report = self.report()
+        print("|".join(
+            ["Developer".rjust(30)] + [x.rjust(15) for x in ["Lines Added", "Lines Removed", "Lines Changed", "Total Commits"]]))
+        for dev in report:
+            print("|".join([dev.rjust(30)] + [str(x).rjust(15) for x in [report[dev]["add"], report[dev]["sub"], report[dev]["churn"], report[dev]["count"]]]))
 
 
 if __name__ == "__main__":
+    p = argparse.ArgumentParser("Gitinfo")
+    p.add_argument("--report", help="CSV report file")
+    p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY")
+    p.add_argument("repos", nargs='+')
+    args = p.parse_args()
     c = Commits()
-    c.load_commits("/home/cristiano/repo/gitinfo/")
-    # pprint(c.from_date(datetime.datetime(2018,11,1)).dict())
-    # print(c.developers)
-    # pprint(c.by_developer(c.developers[0]).dict())
-    # pprint(c.by_developer(c.developers[0]).accumulated_changes)
-    pprint(c.report(date="01/10/2018"))
-    c.report_to_csv('/tmp/teste.csv', date="01/10/2018")
+    for repo in args.repos:
+        c.load_commits(repo)
+    if args.date:
+        c = c.from_date(date=args.date)
+    c.report_to_screen()
+    if args.report:
+        c.report_to_csv(args.report)
+
 
