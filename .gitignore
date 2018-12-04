@@ -2,3 +2,8 @@
 __pycache__/
 venv/
 
+build/
+dist/
+gitinfo.egg-info/
+gitinfo.spec
+*.csv
