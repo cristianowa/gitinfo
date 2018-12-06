@@ -4,7 +4,8 @@ from .models import Commit, Repository, Commiter
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework.decorators import api_view
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 # Create your views here.
 
 
@@ -38,5 +39,12 @@ class GetUpdateDeleteRepository(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend, )
     filter_fields = RepositorySerializer.Meta.fields
+
+@api_view(["POST"])
+def update_repository(request, pk, *args, **kwargs):
+    repository = Repository.objects.get(id=pk)
+    repository.update()
+    return JsonResponse({})
+
 
 #TODO list/create ssh pub key so user can add it as deploy key to git
