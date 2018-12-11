@@ -5,7 +5,7 @@ from django.db import models
 
 
 class Commiter(models.Model):
-    email = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, unique=True)
     def __repr__(self):
         return "< {email} >".format(email=self.email)
 
@@ -13,7 +13,7 @@ class Commiter(models.Model):
         return self.__repr__()
 
 class Repository(models.Model):
-    url = models.CharField(max_length=256)
+    url = models.CharField(max_length=256, unique=True)
 
     def update(self):
         from gitinfo import cmd
@@ -70,3 +70,4 @@ class Commit(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
