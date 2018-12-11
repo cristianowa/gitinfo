@@ -1,11 +1,16 @@
+from django.http import JsonResponse
 from django.shortcuts import render
-from .serializers import CommitSerializer, RepositorySerializer
-from .models import Commit, Repository, Commiter
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
+from graphos.renderers import yui
+from rest_framework import generics
 from rest_framework.decorators import api_view
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from rest_framework.permissions import AllowAny
+
+from core.datasource import CommitsByDeveloper, CommitsByDeveloperLog
+from .models import Commit, Repository
+from .serializers import CommitSerializer, RepositorySerializer
+
+
 # Create your views here.
 
 
@@ -46,5 +51,15 @@ def update_repository(request, pk, *args, **kwargs):
     repository.update()
     return JsonResponse({})
 
+
+def bar_graph(request, type):
+    repository = Repository.objects.get(url=request.GET["repository"])
+    queryset = Commit.objects.filter(repository=repository)
+    if type == "log":
+        datasource = CommitsByDeveloperLog(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
+    else:
+        datasource = CommitsByDeveloper(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
+    chart = yui.BarChart(datasource)
+    return render(request, "main.html",{"chart":chart})
 
 #TODO list/create ssh pub key so user can add it as deploy key to git
