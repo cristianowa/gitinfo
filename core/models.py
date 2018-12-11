@@ -6,7 +6,11 @@ from django.db import models
 
 class Commiter(models.Model):
     email = models.CharField(max_length=100)
+    def __repr__(self):
+        return "< {email} >".format(email=self.email)
 
+    def __str__(self):
+        return self.__repr__()
 
 class Repository(models.Model):
     url = models.CharField(max_length=256)
@@ -44,6 +48,11 @@ class Repository(models.Model):
         os.chdir(oldwd)
         shutil.rmtree(tmp, ignore_errors=True)
 
+    def __repr__(self):
+        return "< {url} >".format(url=self.url)
+
+    def __str__(self):
+        return self.__repr__()
 
 class Commit(models.Model):
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
@@ -56,3 +65,8 @@ class Commit(models.Model):
     def load_commits(cls, repository):
         raise NotImplementedError()
 
+    def __repr__(self):
+        return "< {sha1} - {repo} - {who}>".format(sha1=self.sha1, repo=self.repository.url, who=self.commiter.email)
+
+    def __str__(self):
+        return self.__repr__()
