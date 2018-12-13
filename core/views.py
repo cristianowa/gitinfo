@@ -53,13 +53,16 @@ def update_repository(request, pk, *args, **kwargs):
 
 
 def bar_graph(request, type):
+    from datetime import datetime, timedelta
     repository = Repository.objects.get(url=request.GET["repository"])
-    queryset = Commit.objects.filter(repository=repository)
+    days = request.GET.get("days") or 30
+    periodo_start = datetime.today() - timedelta(days=int(days))
+    queryset = Commit.objects.filter(repository=repository, date__gte=periodo_start)
     if type == "log":
         datasource = CommitsByDeveloperLog(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
     else:
         datasource = CommitsByDeveloper(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
     chart = yui.BarChart(datasource)
-    return render(request, "main.html",{"chart":chart})
+    return render(request, "bar_graph.html",{"chart":chart})
 
 #TODO list/create ssh pub key so user can add it as deploy key to git

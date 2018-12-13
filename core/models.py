@@ -20,7 +20,6 @@ class Repository(models.Model):
         import shutil
         import gitinfo
         import tempfile
-        from pathlib import Path
         tmp = tempfile.mkdtemp()
         cmd("git clone {0} {1}".format(self.url, tmp))
         commits = gitinfo.Commits()
@@ -41,6 +40,7 @@ class Repository(models.Model):
                 dbcommit = Commit(sha1=commit.sha1,
                                   repository=self,
                                   commiter=commiter,
+                                  date=commit.date.strftime("%Y-%m-%d %H:%M"),
                                   add=commit.changes["add"],
                                   sub=commit.changes["sub"],
                                   churn=commit.changes["churn"])
@@ -57,6 +57,7 @@ class Repository(models.Model):
 class Commit(models.Model):
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
+    date = models.DateTimeField(default="1990-01-01 09:30")
     sha1 = models.CharField(max_length=100)
     add = models.IntegerField()
     sub = models.IntegerField()
