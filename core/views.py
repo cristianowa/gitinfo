@@ -51,6 +51,18 @@ def update_repository(request, pk, *args, **kwargs):
     repository.update()
     return JsonResponse({})
 
+def pie_graph(request, type):
+    from datetime import datetime, timedelta
+    repository = Repository.objects.get(url=request.GET["repository"])
+    days = request.GET.get("days") or 30
+    periodo_start = datetime.today() - timedelta(days=int(days))
+    queryset = Commit.objects.filter(repository=repository, date__gte=periodo_start)
+    if type == "log":
+        datasource = CommitsByDeveloperLog(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
+    else:
+        datasource = CommitsByDeveloper(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
+    chart = yui.PieChart(datasource)
+    return render(request, "graph.html", {"chart": chart})
 
 def bar_graph(request, type):
     from datetime import datetime, timedelta
@@ -63,6 +75,15 @@ def bar_graph(request, type):
     else:
         datasource = CommitsByDeveloper(queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
     chart = yui.BarChart(datasource)
-    return render(request, "bar_graph.html",{"chart":chart})
+    return render(request, "graph.html",{"chart":chart})
+
+def main(request):
+    repos = Repository.objects.all()
+    repos = [dict(name=r.url,
+                  pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
+                  pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
+                  bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
+                  bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in repos]
+    return render(request, "main.html", dict(repos=repos))
 
 #TODO list/create ssh pub key so user can add it as deploy key to git
