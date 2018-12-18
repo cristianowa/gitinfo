@@ -11,6 +11,21 @@ The gitinfo.py script provides a simple interface to discover the information vi
 
 A django app is also provided to store permanently the information and allow out-of-the-app users (i.e. managers) to use it.
 
+## Running
+
+You can run the production server *gunicorn* using this command:
+
+```bash
+gunicorn gitinfodjango.wsgi:application --bind 0.0.0.0:8000 --workers 3
+```
+ 
+## Docker 
+
+If you want to run this service inside a docker, run:
+```bash
+sudo docker-compose up --build
+```
+
 ## Roadmap
 
 - Do the same parsing in a sub-directory.

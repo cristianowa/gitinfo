@@ -1,5 +1,8 @@
 Django
-djangorestframework
 django-filter
+djangorestframework
+gunicorn
 path.py
+psycopg2-binary
 requests
+django-graphos
