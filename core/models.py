@@ -72,3 +72,10 @@ class Commit(models.Model):
     def __str__(self):
         return self.__repr__()
 
+class CommitErrorType(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    def __repr__(self):
+        return "< {} >".format(self.name)
+
+    def __str__(self):
+        return self.__repr__()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Commit, Repository, Commiter
+from core.models import Commit, CommitErrorType, Repository, Commiter
 
 class CommitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,4 +11,11 @@ class RepositorySerializer(serializers.ModelSerializer):
             model = Repository
             fields = ('id', 'url',)
         
+    
+class CommitErrorTypeSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = CommitErrorType
+            fields = ('name',)
+
+
     

@@ -7,8 +7,8 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
 
 from core.datasource import CommitsByDeveloper, CommitsByDeveloperLog
-from .models import Commit, Repository
-from .serializers import CommitSerializer, RepositorySerializer
+from .models import Commit, CommitErrorType, Repository
+from .serializers import CommitSerializer, CommitErrorTypeSerializer, RepositorySerializer
 
 
 # Create your views here.
@@ -86,4 +86,19 @@ def main(request):
                   bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in repos]
     return render(request, "main.html", dict(repos=repos))
 
-#TODO list/create ssh pub key so user can add it as deploy key to git
+#TODO list/create ssh pub key so user can add it as deploy key to git 
+class CommiterrortypeList(generics.ListCreateAPIView):
+    queryset = CommitErrorType.objects.all()
+    serializer_class = CommitErrorTypeSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = CommitErrorTypeSerializer.Meta.fields
+
+
+class GetUpdateDeleteCommiterrortype(generics.RetrieveUpdateDestroyAPIView):
+    model = CommitErrorType
+    serializer_class = CommitErrorTypeSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = CommitErrorTypeSerializer.Meta.fields
+
