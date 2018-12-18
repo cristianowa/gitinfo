@@ -52,7 +52,7 @@ class Commit:
     def __str__(self):
         return self.__repr__()
     def dict(self):
-        d = dict(sha1=self.sha1, commit=self.commiter, 
+        d = dict(sha1=self.sha1, commiter=self.commiter,
             date=self.date.strftime("%Y-%m-%dT%H:%M:%SZ"))
         d["changes"] = self.changes
         return d
