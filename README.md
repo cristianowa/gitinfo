@@ -34,3 +34,4 @@ sudo docker-compose up --build
 - Compare errors among commits via Django
 - Create method to update all repositories
 - Create django command to update all repositories
+- Parse submodules and create a dependency graph among all registred repositories 
