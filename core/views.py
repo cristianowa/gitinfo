@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from core.datasource import CommitsByDeveloper, CommitsByDeveloperLog
 from .models import Commit, CommitErrorType, Repository
 from .serializers import CommitSerializer, CommitErrorTypeSerializer, RepositorySerializer
-
+from .forms import NewRepository
 
 # Create your views here.
 
@@ -51,6 +51,31 @@ def update_repository(request, pk, *args, **kwargs):
     repository.update()
     return JsonResponse({})
 
+def add_repository(request):
+
+    if request.method == 'POST':
+        form = NewRepository(request.POST)
+        if form.is_valid():
+            url = form.cleaned_data.get("url")
+            repo = Repository(url=url)
+            repo.save()
+            repo.update()
+            repos = [dict(name=r.url,
+                          pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
+                          pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
+                          bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
+                          bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in [repo]]
+            return render(request, "main.html", dict(repos=repos))
+    else:
+        form = NewRepository()
+
+    return render(request, 'add_repository.html', {'form': form})
+
+
+    repository = Repository()
+    repository.update()
+    return JsonResponse({})
+
 def pie_graph(request, type):
     from datetime import datetime, timedelta
     repository = Repository.objects.get(url=request.GET["repository"])
@@ -85,6 +110,15 @@ def main(request):
                   bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
                   bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in repos]
     return render(request, "main.html", dict(repos=repos))
+
+def ssh_key(request):
+    import sys, os
+    if "win" in sys.platform.lower():
+        sshkey = open(os.path.join(os.environ.get("HOMEPATH"), ".ssh/id_rsa.pub")).read()
+    else:
+        sshkey = open(os.path.join(os.environ.get("HOME"), ".ssh/id_rsa.pub")).read()
+
+    return render(request, "ssh_key.html", dict(sshkey=sshkey))
 
 #TODO list/create ssh pub key so user can add it as deploy key to git 
 class CommiterrortypeList(generics.ListCreateAPIView):

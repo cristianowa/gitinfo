@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gitinfo</title>
+</head>
+<body>
+<form action="repository/add/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <p>
+        <input type="submit" value="Add Repository">
+</form>
+</body>
+</html>
