@@ -1,5 +1,6 @@
 import os
 from django.db import models
+import re
 
 # Create your models here.
 
@@ -45,6 +46,30 @@ class Repository(models.Model):
                                   sub=commit.changes["sub"],
                                   churn=commit.changes["churn"])
                 dbcommit.save()
+
+        cmd("git submodule init")
+        cmd("git submodule update")
+        modules_urls = cmd("git submodule foreach \"git ls-remote --get-url\"").split("\n")
+        modules = list(filter(lambda k: "Entering '" not in k, modules_urls))
+        for mod in modules:
+            if len(Submodule.objects.filter(holder=self, url=mod)) == 0 and mod != '':
+                candidate = Repository.objects.filter(url=mod)
+                if len(candidate) == 1:
+                    submodule_repo = candidate[0]
+                else:
+                    submodule_repo = None
+                try:
+                    submodule = Submodule.objects.get(holder=self, url=mod)
+                except Submodule.DoesNotExist:
+                    submodule = Submodule(holder=self, url=mod)
+                if submodule_repo:
+                    submodule.dependency = submodule_repo
+                submodule.save()
+
+            # TODO: remove removed submddules
+
+
+
         os.chdir(oldwd)
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -80,10 +105,23 @@ class Commit(models.Model):
     def __str__(self):
         return self.__repr__()
 
+
 class CommitErrorType(models.Model):
     name = models.CharField(max_length=100, unique=True)
     def __repr__(self):
         return "< {} >".format(self.name)
 
+    def __str__(self):
+        return self.__repr__()
+
+class Submodule(models.Model):
+    url = models.CharField(max_length=256, unique=True)
+    holder = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name="holder_repository")
+    dependency = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True,
+                                   related_name="dependency_repository")
+
+    def __repr__(self):
+        return "< Submodule {0} of {1}>".format(self.url, self.holder.url)
+        
     def __str__(self):
         return self.__repr__()

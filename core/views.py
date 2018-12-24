@@ -5,10 +5,12 @@ from graphos.renderers import yui
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
 
 from core.datasource import CommitsByDeveloper, CommitsByDeveloperLog
-from .models import Commit, CommitErrorType, Repository
-from .serializers import CommitSerializer, CommitErrorTypeSerializer, RepositorySerializer
+from .models import Commiter, Submodule, Commit, CommitErrorType, Repository
+from .serializers import CommiterSerializer, SubmoduleSerializer, CommitSerializer, CommitErrorTypeSerializer,\
+    RepositorySerializer, commits_serializer
 from .forms import NewRepository
 
 # Create your views here.
@@ -44,6 +46,22 @@ class GetUpdateDeleteCommiterrortype(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend, )
     filter_fields = CommitErrorTypeSerializer.Meta.fields
+
+
+class SubmoduleList(generics.ListCreateAPIView):
+    queryset = Submodule.objects.all()
+    serializer_class = SubmoduleSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = SubmoduleSerializer.Meta.fields
+
+
+class GetUpdateDeleteSubmodule(generics.RetrieveUpdateDestroyAPIView):
+    model = Submodule
+    serializer_class = SubmoduleSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = SubmoduleSerializer.Meta.fields
 
  
 class RepositoryList(generics.ListCreateAPIView):

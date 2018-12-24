@@ -15,4 +15,6 @@ urlpatterns = [
     url(r'^graph/pie/(?P<type>[a-z]+)/', views.pie_graph),
     url(r'^commiterrortype/$', views.CommiterrortypeList.as_view()),
     url(r'^commiterrortype/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteCommiterrortype.as_view()),
+    url(r'^submodule/$', views.SubmoduleList.as_view()),
+    url(r'^submodule/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteSubmodule.as_view()),
 ]

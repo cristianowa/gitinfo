@@ -29,4 +29,10 @@ class CommitErrorTypeSerializer(serializers.ModelSerializer):
             fields = ('name',)
 
 
+class SubmoduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submodule
+        fields = ('url','holder','dependency')
+
+
     
