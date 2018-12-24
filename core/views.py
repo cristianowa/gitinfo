@@ -67,6 +67,25 @@ def update_repository(request, pk, *args, **kwargs):
     repository.update()
     return JsonResponse({})
 
+
+@api_view(["GET"])
+def dump(request):
+    data = {"repositories" : {}, "commiters": {}}
+    for commiter in Commiter.objects.all():
+        data["commiters"][str(commiter.email)] = {"info": CommiterSerializer(commiter).data}
+        data["commiters"][str(commiter.email)]["commits"] = []
+        data["commiters"][str(commiter.email)]["repos"] = {}
+    for repo in Repository.objects.all():
+        repo_serializer = RepositorySerializer(repo)
+        data["repositories"][str(repo.url)] = {"info": repo_serializer.data}
+        data["repositories"][str(repo.url)] = {"commits": commits_serializer(repo.commits)}
+        for commiter in Commiter.objects.all():
+            commits = repo.filter_commits(commiter=commiter)
+            data["commiters"][str(commiter.email)]["commits"] += commits_serializer(commits)
+            data["commiters"][str(commiter.email)]["repos"][str(repo.url)] = commits_serializer(commits)
+    return JsonResponse(data)
+
+
 # Graphs view
 
 def pie_graph(request, type):

@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     url(r"^/", views.main),
+    url(r"dump/", views.dump),
     url(r'sshkey/', views.ssh_key),
     url(r'^commit/$', views.CommitList.as_view()),
     url(r'^commit/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteCommit.as_view()),

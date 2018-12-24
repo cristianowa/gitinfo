@@ -54,6 +54,14 @@ class Repository(models.Model):
     def __str__(self):
         return self.__repr__()
 
+    @property
+    def commits(self):
+        return list(Commit.objects.filter(repository=self))
+
+    def filter_commits(self, **kwargs):
+        return list(Commit.objects.filter(repository=self, **kwargs))
+
+
 class Commit(models.Model):
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
