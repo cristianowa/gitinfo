@@ -12,3 +12,6 @@ repo_id = ans.json()[0]["id"]
 
 ans = requests.post("http://127.0.0.1:8000/git/repository/{}/update/".format(repo_id))
 ans.raise_for_status()
+
+ans = requests.post("http://127.0.0.1:8000/git/commiterrortype/", json=dict(name="Test Failure"))
+ans.raise_for_status()
