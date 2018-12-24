@@ -28,6 +28,22 @@ class GetUpdateDeleteCommit(generics.RetrieveUpdateDestroyAPIView):
     filter_backends = (DjangoFilterBackend, )
     filter_fields = CommitSerializer.Meta.fields
 
+# Rest API
+
+class CommiterrortypeList(generics.ListCreateAPIView):
+    queryset = CommitErrorType.objects.all()
+    serializer_class = CommitErrorTypeSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = CommitErrorTypeSerializer.Meta.fields
+
+
+class GetUpdateDeleteCommiterrortype(generics.RetrieveUpdateDestroyAPIView):
+    model = CommitErrorType
+    serializer_class = CommitErrorTypeSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = CommitErrorTypeSerializer.Meta.fields
 
  
 class RepositoryList(generics.ListCreateAPIView):
@@ -51,30 +67,7 @@ def update_repository(request, pk, *args, **kwargs):
     repository.update()
     return JsonResponse({})
 
-def add_repository(request):
-
-    if request.method == 'POST':
-        form = NewRepository(request.POST)
-        if form.is_valid():
-            url = form.cleaned_data.get("url")
-            repo = Repository(url=url)
-            repo.save()
-            repo.update()
-            repos = [dict(name=r.url,
-                          pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
-                          pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
-                          bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
-                          bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in [repo]]
-            return render(request, "main.html", dict(repos=repos))
-    else:
-        form = NewRepository()
-
-    return render(request, 'add_repository.html', {'form': form})
-
-
-    repository = Repository()
-    repository.update()
-    return JsonResponse({})
+# Graphs view
 
 def pie_graph(request, type):
     from datetime import datetime, timedelta
@@ -102,6 +95,8 @@ def bar_graph(request, type):
     chart = yui.BarChart(datasource)
     return render(request, "graph.html",{"chart":chart})
 
+# HTML views
+
 def main(request):
     repos = Repository.objects.all()
     repos = [dict(name=r.url,
@@ -120,19 +115,28 @@ def ssh_key(request):
 
     return render(request, "ssh_key.html", dict(sshkey=sshkey))
 
-#TODO list/create ssh pub key so user can add it as deploy key to git 
-class CommiterrortypeList(generics.ListCreateAPIView):
-    queryset = CommitErrorType.objects.all()
-    serializer_class = CommitErrorTypeSerializer
-    permission_classes = (AllowAny,)
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = CommitErrorTypeSerializer.Meta.fields
+
+def add_repository(request):
+
+    if request.method == 'POST':
+        form = NewRepository(request.POST)
+        if form.is_valid():
+            url = form.cleaned_data.get("url")
+            repo = Repository(url=url)
+            repo.save()
+            repo.update()
+            repos = [dict(name=r.url,
+                          pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
+                          pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
+                          bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
+                          bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in [repo]]
+            return render(request, "main.html", dict(repos=repos))
+    else:
+        form = NewRepository()
+
+    return render(request, 'add_repository.html', {'form': form})
 
 
-class GetUpdateDeleteCommiterrortype(generics.RetrieveUpdateDestroyAPIView):
-    model = CommitErrorType
-    serializer_class = CommitErrorTypeSerializer
-    permission_classes = (AllowAny,)
-    filter_backends = (DjangoFilterBackend, )
-    filter_fields = CommitErrorTypeSerializer.Meta.fields
-
+    repository = Repository()
+    repository.update()
+    return JsonResponse({})
