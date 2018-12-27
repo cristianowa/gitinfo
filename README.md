@@ -32,6 +32,7 @@ sudo docker-compose up --build
 - Publish to pypi
 - Save other content in the django app (e.g. test results)
 - Compare errors among commits via Django
-- Create method to update all repositories
-- Create django command to update all repositories
-- Parse submodules and create a dependency graph among all registred repositories 
+- Parse characters changed (add_char, sub_char, churn_char)
+- Parse merge (boolean on commit OR new field on commit)
+- Command to recreate based on existing repositories (Remove all commits and underlaying stuff, update all repos again)
+
