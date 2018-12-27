@@ -115,7 +115,7 @@ class CommitErrorType(models.Model):
         return self.__repr__()
 
 class Submodule(models.Model):
-    url = models.CharField(max_length=256, unique=True)
+    url = models.CharField(max_length=256)
     holder = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name="holder_repository")
     dependency = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True,
                                    related_name="dependency_repository")
