@@ -43,6 +43,7 @@ class Commit:
             tmp = tempfile.mktemp()
             cmd("git show {0} --word-diff > {1}".format(self.sha1, tmp))
             ret = open(tmp, encoding="Latin").read().split("\n")
+            os.unlink(tmp)
         total_add = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT not in k and SUBOUT not in k, ret)))
         total_sub = len(list(filter(lambda k: ADDOUT not in k and ADDOUT not in k and SUBOUT in k and SUBOUT in k, ret)))
         churn = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT in k and SUBOUT in k, ret)))
