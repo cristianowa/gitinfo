@@ -47,7 +47,8 @@ class Repository(models.Model):
                                   churn=commit.changes["churn"],
                                   char_add=commit.changes["added_chars"],
                                   char_sub=commit.changes["removed_chars"],
-                                  char_churn=commit.changes["churned_chars"])
+                                  char_churn=commit.changes["churned_chars"],
+                                  merge=commit.merge)
                 dbcommit.save()
 
         cmd("git submodule init")
@@ -101,6 +102,7 @@ class Commit(models.Model):
     char_add = models.IntegerField()
     char_sub = models.IntegerField()
     char_churn = models.IntegerField()
+    merge = models.BooleanField()
     @classmethod
     def load_commits(cls, repository):
         raise NotImplementedError()
