@@ -1,5 +1,6 @@
 import os
 import datetime
+import re
 from email.utils import parsedate_tz
 from subprocess import getstatusoutput, run
 import subprocess
@@ -10,7 +11,15 @@ import argparse
 
 
 def cmd(s):
-    sts, out = getstatusoutput(s)
+    try:
+        sts, out = getstatusoutput(s)
+    except Exception: #TODO check for enconding exception
+        # workaround for latin encoded files
+        import tempfile
+        tmp = tempfile.mktemp()
+        sts, _ = cmd("{0} > {1}".format(s, tmp))
+        out = open(tmp, encoding="Latin").read().split("\n")
+        os.unlink(tmp)
     if sts != 0:
         raise Exception("Command error! [{0}] [{1}]", s, out)
     return out
@@ -21,7 +30,7 @@ SUBIN = "[-"
 SUBOUT = "-]"
 
 class Commit:
-    def __init__(self, sha1, commiter, date):
+    def __init__(self, sha1, commiter, date, first=False):
         self.sha1 = sha1
         self.commiter = commiter
         try:
@@ -29,6 +38,7 @@ class Commit:
         except:
             self.date = datetime.datetime.now()
         self.changes = None
+        self.first_commit = first
         self.parse_changes()
 
     def parse_changes(self):
@@ -47,7 +57,35 @@ class Commit:
         total_add = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT not in k and SUBOUT not in k, ret)))
         total_sub = len(list(filter(lambda k: ADDOUT not in k and ADDOUT not in k and SUBOUT in k and SUBOUT in k, ret)))
         churn = len(list(filter(lambda k: ADDOUT in k and ADDOUT in k and SUBOUT in k and SUBOUT in k, ret)))
-        self.changes = dict(add=total_add, sub=total_sub, churn=churn)
+
+
+        added_chars = 0
+        removed_chars = 0
+        churned_chars = 0
+        if not self.first_commit:    # TODO ignoring first commit until being able to diff to ... nothing ?
+            word_diff = cmd("git diff --word-diff=porcelain {0}~1..{0}".format(self.sha1))
+            word_diffs = word_diff.split("~")
+
+            for wd in word_diffs:
+                if wd.count("@@") > 2 and wd.count("+++") > 1 and wd.count("---") > 1:
+                    continue
+                word_list = wd.split("\n")
+                try:
+                    added = len(list(filter(lambda x: len(x) > 1 and x[0] == "+", word_list))[0].replace(" ", "").replace("\t", ""))
+                except Exception:
+                    added = 0
+                try:
+                    removed = len(list(filter(lambda x:len(x) > 1 and x[0] == "-", word_list))[0].replace(" ", "").replace("\t", ""))
+                except Exception:
+                    removed = 0
+                if added > 0 and removed > 0:
+                    churned_chars += abs(removed)
+                else:
+                    added_chars += added
+                    removed_chars += removed
+
+        self.changes = dict(add=total_add, sub=total_sub, churn=churn,
+                            added_chars=added_chars, removed_chars=removed_chars, churned_chars=churned_chars)
 
 
     def __repr__(self):
@@ -69,8 +107,10 @@ class Commits(list):
         else:
             cwd = None
         commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"300 days ago\" ").split("\n")]
-        for commit in commits:
+
+        for commit in commits[:-2]:
             self.append(Commit(*commit))
+        self.append(Commit(*commits[-1], first=True))
         if cwd:
             os.chdir(cwd)
 
@@ -89,11 +129,10 @@ class Commits(list):
 
     @property
     def accumulated_changes(self):
-        d = dict(add=0, sub=0, churn=0)
+        d = dict(add=0, sub=0, churn=0, added_chars=0, removed_chars=0, churned_chars=0)
         for commit in self:
-            d["add"] += commit.changes["add"]
-            d["sub"] += commit.changes["sub"]
-            d["churn"] += commit.changes["churn"]
+            for k in d.keys():
+                d[k] += commit.changes[k]
         d["count"] = len(self)
         return d
 
@@ -113,23 +152,29 @@ class Commits(list):
         report = self.report(date=date)
         with open(filename, 'w', newline='\n') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(["Developer", "Lines Added", "Lines Removed", "Lines Changed", "Total Commits"])
+            writer.writerow(["Lines Added", "Lines Removed", "Lines Changed", "Chars added", "Chars removed",  "Chars churned", "Total Commits"])
             for dev in report:
-                writer.writerow([dev, report[dev]["add"], report[dev]["sub"], report[dev]["churn"], report[dev]["count"]])
+                writer.writerow([dev, report[dev]["add"], report[dev]["sub"], report[dev]["churn"],
+                                 report[dev]["added_chars"], report[dev]["removed_chars"], report[dev]["churned_chars"],
+                                 report[dev]["count"]])
         return report
 
     def report_to_screen(self):
         report = self.report()
         print("|".join(
-            ["Developer".rjust(30)] + [x.rjust(15) for x in ["Lines Added", "Lines Removed", "Lines Changed", "Total Commits"]]))
+            ["Developer".rjust(30)] + [x.rjust(15) for x in ["Lines Added", "Lines Removed", "Lines Changed",
+                                                             "Chars added", "Chars removed",  "Chars churned",
+                                                             "Total Commits"]]))
         for dev in report:
-            print("|".join([dev.rjust(30)] + [str(x).rjust(15) for x in [report[dev]["add"], report[dev]["sub"], report[dev]["churn"], report[dev]["count"]]]))
+            print("|".join([dev.rjust(30)] + [str(x).rjust(15) for x in [report[dev]["add"], report[dev]["sub"], report[dev]["churn"],
+                                                                         report[dev]["added_chars"],report[dev]["removed_chars"], report[dev]["churned_chars"],
+                                                                         report[dev]["count"]]]))
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser("Gitinfo")
-    p.add_argument("--report", help="CSV report file")
-    p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY")
+    p.add_argument("--report", help="CSV report file", default=None)
+    p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY", default=None)
     p.add_argument("repos", nargs='+')
     args = p.parse_args()
     c = Commits()
