@@ -34,5 +34,4 @@ sudo docker-compose up --build
 - Compare errors among commits via Django
 - Parse characters changed (add_char, sub_char, churn_char)
 - Parse merge (boolean on commit OR new field on commit)
-- Command to recreate based on existing repositories (Remove all commits and underlaying stuff, update all repos again)
 - Plugin info: create plugins for calculating metrics for each language (based on extension)
