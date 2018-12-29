@@ -44,7 +44,10 @@ class Repository(models.Model):
                                   date=commit.date.strftime("%Y-%m-%d %H:%M"),
                                   add=commit.changes["add"],
                                   sub=commit.changes["sub"],
-                                  churn=commit.changes["churn"])
+                                  churn=commit.changes["churn"],
+                                  char_add=commit.changes["added_chars"],
+                                  char_sub=commit.changes["removed_chars"],
+                                  char_churn=commit.changes["churned_chars"])
                 dbcommit.save()
 
         cmd("git submodule init")
@@ -95,6 +98,9 @@ class Commit(models.Model):
     add = models.IntegerField()
     sub = models.IntegerField()
     churn = models.IntegerField()
+    char_add = models.IntegerField()
+    char_sub = models.IntegerField()
+    char_churn = models.IntegerField()
     @classmethod
     def load_commits(cls, repository):
         raise NotImplementedError()
