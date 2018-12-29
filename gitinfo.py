@@ -30,7 +30,7 @@ SUBIN = "[-"
 SUBOUT = "-]"
 
 class Commit:
-    def __init__(self, sha1, commiter, date, first=False):
+    def __init__(self, sha1, commiter, date, first=False, merge=False):
         self.sha1 = sha1
         self.commiter = commiter
         try:
@@ -40,6 +40,7 @@ class Commit:
         self.changes = None
         self.first_commit = first
         self.parse_changes()
+        self.merge = merge
 
     def parse_changes(self):
 #        ret = cmd("git log --oneline  --numstat {} -n 1".format(self.sha1))
@@ -107,9 +108,9 @@ class Commits(list):
         else:
             cwd = None
         commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"300 days ago\" ").split("\n")]
-
+        merges = cmd("git log --merges --oneline | cut -d ' ' -f 1").split("\n")
         for commit in commits[:-2]:
-            self.append(Commit(*commit))
+            self.append(Commit(*commit, merge=commit[0] in merges))
         self.append(Commit(*commits[-1], first=True))
         if cwd:
             os.chdir(cwd)
@@ -128,12 +129,17 @@ class Commits(list):
         return list(set([x.commiter for x in self]))
 
     @property
+    def merges(self):
+        return len(list(filter(lambda x:x.merge, self)))
+
+    @property
     def accumulated_changes(self):
         d = dict(add=0, sub=0, churn=0, added_chars=0, removed_chars=0, churned_chars=0)
         for commit in self:
             for k in d.keys():
                 d[k] += commit.changes[k]
         d["count"] = len(self)
+        d["merge"] = self.merges
         return d
 
     def report(self, date=None):
@@ -152,11 +158,12 @@ class Commits(list):
         report = self.report(date=date)
         with open(filename, 'w', newline='\n') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(["Lines Added", "Lines Removed", "Lines Changed", "Chars added", "Chars removed",  "Chars churned", "Total Commits"])
+            writer.writerow(["Lines Added", "Lines Removed", "Lines Changed", "Chars added", "Chars removed",
+                             "Chars churned", "Total Commits", "Total Merges"])
             for dev in report:
                 writer.writerow([dev, report[dev]["add"], report[dev]["sub"], report[dev]["churn"],
                                  report[dev]["added_chars"], report[dev]["removed_chars"], report[dev]["churned_chars"],
-                                 report[dev]["count"]])
+                                 report[dev]["count"], report[dev]["merge"]])
         return report
 
     def report_to_screen(self):
@@ -164,11 +171,11 @@ class Commits(list):
         print("|".join(
             ["Developer".rjust(30)] + [x.rjust(15) for x in ["Lines Added", "Lines Removed", "Lines Changed",
                                                              "Chars added", "Chars removed",  "Chars churned",
-                                                             "Total Commits"]]))
+                                                             "Total Commits", "Total Merges"]]))
         for dev in report:
             print("|".join([dev.rjust(30)] + [str(x).rjust(15) for x in [report[dev]["add"], report[dev]["sub"], report[dev]["churn"],
                                                                          report[dev]["added_chars"],report[dev]["removed_chars"], report[dev]["churned_chars"],
-                                                                         report[dev]["count"]]]))
+                                                                         report[dev]["count"], report[dev]["merge"]]]))
 
 
 if __name__ == "__main__":
