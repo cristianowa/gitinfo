@@ -9,7 +9,8 @@ class CommiterSerializer(serializers.ModelSerializer):
 class CommitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commit
-        fields = ('id', 'sha1', 'commiter', 'add', 'sub', 'churn','date', )
+        fields = ('id', 'sha1', 'commiter', 'add', 'sub', 'churn','date',
+                  'char_add', 'char_sub', 'char_churn', 'merge')
 
 class RepositorySerializer(serializers.ModelSerializer):
         class Meta:
