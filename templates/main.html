@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Gitinfo</title>
-</head>
-<body>
+{% include "header.html" %}
+
 <ul>
 {% for repo in repos %}
     <li>
-        <h5>{{ repo.name }}</h5>
-        <a href={{ repo.bar_log_url }}> Bar Log </a>
-        <a href={{ repo.bar_normal_url }}> Bar Normal </a>
-        <a href={{ repo.pie_log_url }}> Pie Log </a>
-        <a href={{ repo.pie_normal_url }}> Pie Normal </a>
+        <h5><a href="">{{ repo.name }}</a></h5>
+        <a href=/graph/bar/normal/?repository={{ repo.url }}> Bar Log </a>
+        <a href=/graph/bar/normal/?repository={{ repo.url }}> Bar Normal </a>
+        <a href=/graph/pie/log/?repository={{ repo.url }}> Pie Log </a>
+        <a href=/graph/pie/normal/?repository={{ repo.url }}> Pie Normal </a>
 
     </li>
 {% endfor %}
 </ul>
-</body>
-</html>
+{% include "footer.html" %}
