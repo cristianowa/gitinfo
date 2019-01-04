@@ -88,8 +88,7 @@ def update_repository(request, pk, *args, **kwargs):
     return JsonResponse({})
 
 
-@api_view(["GET"])
-def dump(request):
+def dump_data():
     data = {"repositories" : {}, "commiters": {}}
     for commiter in Commiter.objects.all():
         data["commiters"][str(commiter.email)] = {"info": CommiterSerializer(commiter).data}
@@ -103,7 +102,17 @@ def dump(request):
             commits = repo.filter_commits(commiter=commiter)
             data["commiters"][str(commiter.email)]["commits"] += commits_serializer(commits)
             data["commiters"][str(commiter.email)]["repos"][str(repo.url)] = commits_serializer(commits)
-    return JsonResponse(data)
+    return data
+
+def view_all(request):
+    data = dump_data()
+    render(request, "view_all.html", data)
+
+@api_view(["GET"])
+def dump(request):
+    return JsonResponse(dump_data())
+
+
 
 
 # Graphs view
