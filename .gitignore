@@ -7,4 +7,4 @@ dist/
 gitinfo.egg-info/
 gitinfo.spec
 *.csv
-static/
+/static/

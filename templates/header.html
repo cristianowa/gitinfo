@@ -3,12 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Gitinfo</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "style.css" %}" >
 </head>
 <body>
-<div>
-<li>
-    <ul><a href="/">Home</a></ul>
-    <ul><a href="/repository/add">Add Repository</a></ul>
-</li>
+<div id="display_bar">
+
+       <a href="/" style="color: white;text-decoration: none">
+           <img src="{% static "logo.png" %}" alt="Gitinfo" height="42" width="42">
+           <h1> Gitinfo</h1>
+       </a>
 </div>
-<div>
+<div id="linkbar">
+<ul id="linkbar_list">
+    <li id="linkbar_entry"><a href="/">Home</a></li>
+    <li id="linkbar_entry"><a href="/repository/add">Add Repository</a></li>
+    <li id="linkbar_entry"><a href="/submodules/">Submodules Info</a></li>
+</ul>
+</div>
+<div id="main">
+    <div id="holder">
