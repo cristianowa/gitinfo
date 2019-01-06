@@ -13,13 +13,14 @@ import argparse
 def cmd(s):
     try:
         sts, out = getstatusoutput(s)
-    except Exception: #TODO check for enconding exception
+    except UnicodeDecodeError:
         # workaround for latin encoded files
         import tempfile
         tmp = tempfile.mktemp()
-        sts, _ = cmd("{0} > {1}".format(s, tmp))
+        cmd("{0} > {1}".format(s, tmp))
         out = open(tmp, encoding="Latin").read().split("\n")
         os.unlink(tmp)
+        sts = 0
     if sts != 0:
         raise Exception("Command error! [{0}] [{1}]", s, out)
     return out
