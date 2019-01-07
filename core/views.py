@@ -1,15 +1,11 @@
-from datetime import datetime, timedelta
-
 from django.http import JsonResponse
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from graphos.renderers import yui
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
-from rest_framework.renderers import JSONRenderer
 
-from core.datasource import CommitsByDeveloper, CommitsByDeveloperLog
+from .graphs import get_graph
 from .models import Commiter, Submodule, Commit, CommitErrorType, Repository
 from .serializers import CommiterSerializer, SubmoduleSerializer, CommitSerializer, CommitErrorTypeSerializer,\
     RepositorySerializer, commits_serializer
@@ -116,22 +112,7 @@ def view_all(request):
 
 # Graphs view
 
-def get_graph(repository, days, type="log", draw="pie"):
-    periodo_start = datetime.today() - timedelta(days=int(days))
-    queryset = Commit.objects.filter(repository=repository, date__gte=periodo_start)
-    type_function = {
-        "log":CommitsByDeveloperLog,
-        "normal":CommitsByDeveloper
-    }
-    datasource = type_function[type](queryset=queryset, fields=['commiter', 'add', 'sub', 'churn'])
-    draw_function = {
-        "bar": yui.BarChart,
-        "pie": yui.PieChart
-    }
-    return draw_function[draw](datasource)
-
 def graph(request, draw, type):
-    from datetime import datetime, timedelta
     repository = Repository.objects.get(url=request.GET["repository"])
     days = request.GET.get("days") or 30
     return render(request, "graph.html", {"chart": get_graph(repository, days, type, draw)})
