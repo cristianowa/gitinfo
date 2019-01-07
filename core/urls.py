@@ -4,14 +4,16 @@ from . import views
 urlpatterns = [
     url(r"^$", views.main),
 
-    url(r'^sshkey/', views.ssh_key),
-    url(r'^repository/$', views.RepositoryList.as_view()),
+    url(r'^repository/(?P<pk>[0-9]+)/$', views.repository),
     url(r'^graph/(?P<draw>[a-z]+)/(?P<type>[a-z]+)/', views.graph),
     url(r'^repository/add/', views.add_repository),
+    url(r'^submodules/', views.submodules),
+    url(r'^sshkey/', views.sshkey),
     url(r"^api/dump/", views.dump),
     url(r'^api/repository/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteRepository.as_view()),
     url(r'^api/commit/$', views.CommitList.as_view()),
     url(r'^api/commit/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteCommit.as_view()),
+    url(r'^api/repository/$', views.RepositoryList.as_view()),
     url(r'^api/repository/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteRepository.as_view()),
     url(r'^api/repository/(?P<pk>[0-9]+)/update/', views.update_repository),
     url(r'^api/submodule/$', views.SubmoduleList.as_view()),

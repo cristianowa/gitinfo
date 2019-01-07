@@ -17,6 +17,7 @@ from .forms import NewRepository
 
 # Create your views here.
 
+# Rest API
 
 class CommitList(generics.ListCreateAPIView):
     queryset = Commit.objects.all()
@@ -31,8 +32,6 @@ class GetUpdateDeleteCommit(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend, )
     filter_fields = CommitSerializer.Meta.fields
-
-# Rest API
 
 class CommiterrortypeList(generics.ListCreateAPIView):
     queryset = CommitErrorType.objects.all()
@@ -104,15 +103,15 @@ def dump_data():
             data["commiters"][str(commiter.email)]["repos"][str(repo.url)] = commits_serializer(commits)
     return data
 
-def view_all(request):
-    data = dump_data()
-    render(request, "view_all.html", data)
 
 @api_view(["GET"])
 def dump(request):
     return JsonResponse(dump_data())
 
 
+def view_all(request):
+    data = dump_data()
+    render(request, "view_all.html", data)
 
 
 # Graphs view
@@ -144,7 +143,7 @@ def main(request):
     repos = [dict(name=r.url, url=r.url) for r in repos]
     return render(request, "main.html", dict(repos=repos))
 
-def ssh_key(request):
+def sshkey(request):
     import sys, os
     if "win" in sys.platform.lower():
         sshkey = open(os.path.join(os.environ.get("HOMEPATH"), ".ssh/id_rsa.pub")).read()
@@ -153,6 +152,16 @@ def ssh_key(request):
 
     return render(request, "ssh_key.html", dict(sshkey=sshkey))
 
+
+def repository(request, pk):
+    from .models import Repository
+    repo = Repository.objects.get(id=pk)
+    return render(request, "repository.html", dict(repository=repo))
+
+def submodules(request):
+    from .models import Submodule
+    submodules = Submodule.objects.all()
+    return render(request, "submodules.html", dict())
 
 def add_repository(request):
 
