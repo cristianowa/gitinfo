@@ -13,6 +13,48 @@ class Commiter(models.Model):
     def __str__(self):
         return self.__repr__()
 
+    @property
+    def commits(self):
+        return CommitList(Commit.objects.filter(commiter=self))
+
+    def filter_commits(self, **kwargs):
+        return CommitList(Commit.objects.filter(commiter=self, **kwargs))
+
+
+class CommitList(list):
+    @property
+    def sum(self):
+        return sum([commit.add for commit in self])
+
+    @property
+    def sub(self):
+        return sum([commit.sub for commit in self])
+
+    @property
+    def churn(self):
+        return sum([commit.churn for commit in self])
+
+    @property
+    def char_sum(self):
+        return sum([commit.add for commit in self])
+
+    @property
+    def char_sub(self):
+        return sum([commit.sub for commit in self])
+
+    @property
+    def char_churn(self):
+        return sum([commit.churn for commit in self])
+
+    @property
+    def merges(self):
+        return len(list(filter(lambda commit:commit.merge, self)))
+
+    @property
+    def metrics(self):
+        return dict(sum=self.sum, sub=self.sub, churn=self.churn, merges=self.merges,
+                    char_sum=self.char_sum, char_sub=self.char_sub, char_churn=self.char_churn)
+
 class Repository(models.Model):
     url = models.CharField(max_length=256, unique=True)
 
@@ -85,10 +127,11 @@ class Repository(models.Model):
 
     @property
     def commits(self):
-        return list(Commit.objects.filter(repository=self))
+        return CommitList(Commit.objects.filter(repository=self))
 
     def filter_commits(self, **kwargs):
-        return list(Commit.objects.filter(repository=self, **kwargs))
+        return CommitList(Commit.objects.filter(repository=self, **kwargs))
+
 
 
 class Commit(models.Model):
