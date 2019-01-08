@@ -1,5 +1,6 @@
 import os
 import datetime
+import pytz
 import re
 from email.utils import parsedate_tz
 from subprocess import getstatusoutput, run
@@ -18,7 +19,7 @@ def cmd(s):
         import tempfile
         tmp = tempfile.mktemp()
         cmd("{0} > {1}".format(s, tmp))
-        out = open(tmp, encoding="Latin").read().split("\n")
+        out = open(tmp, encoding="Latin").read()
         os.unlink(tmp)
         sts = 0
     if sts != 0:
@@ -35,9 +36,9 @@ class Commit:
         self.sha1 = sha1
         self.commiter = commiter
         try:
-            self.date = datetime.datetime(*parsedate_tz(date)[:6])
+            self.date = datetime.datetime(*parsedate_tz(date)[:6], tzinfo=pytz.UTC)
         except:
-            self.date = datetime.datetime.now()
+            self.date = datetime.datetime.now(tz=pytz.UTC)
         self.changes = None
         self.first_commit = first
         self.parse_changes()
