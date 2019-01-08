@@ -4,7 +4,6 @@ from enum import Enum
 from datetime import datetime, timedelta
 
 from django.db import models
-from cached_property import cached_property_with_ttl
 
 # Create your models here.
 
