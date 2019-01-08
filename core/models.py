@@ -1,8 +1,10 @@
+import re
 import os
 from enum import Enum
+from datetime import datetime, timedelta
 
 from django.db import models
-import re
+from cached_property import cached_property_with_ttl
 
 # Create your models here.
 
@@ -22,6 +24,25 @@ class Commiter(models.Model):
     def filter_commits(self, **kwargs):
         return CommitList(Commit.objects.filter(commiter=self, **kwargs))
 
+    def update(self):
+       CommitsMetrics.objects.filter(commiter=self).delete()
+       for period in PeriodChoice:
+            days = re.findall("[0-9]+", period.name)[0]
+            period_start = datetime.today() - timedelta(days=int(days))
+            commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
+            commit_metrics = CommitsMetrics(add=commit_list.add,
+                                            sub=commit_list.sub,
+                                            churn=commit_list.churn,
+                                            char_add=commit_list.char_add,
+                                            char_sub=commit_list.char_sub,
+                                            char_churn=commit_list.char_churn,
+                                            merges=commit_list.merges,
+                                            commiter=self,
+                                            period=period
+                                            )
+            commit_metrics.save()
+
+
 
 class CommitList(list):
     @property
@@ -38,15 +59,15 @@ class CommitList(list):
 
     @property
     def char_add(self):
-        return sum([commit.add for commit in self])
+        return sum([commit.char_add for commit in self])
 
     @property
     def char_sub(self):
-        return sum([commit.sub for commit in self])
+        return sum([commit.char_sub for commit in self])
 
     @property
     def char_churn(self):
-        return sum([commit.churn for commit in self])
+        return sum([commit.char_churn for commit in self])
 
     @property
     def merges(self):
@@ -55,7 +76,7 @@ class CommitList(list):
     @property
     def metrics(self):
         return dict(add=self.add, sub=self.sub, churn=self.churn, merges=self.merges,
-                    char_sum=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
+                    char_sadd=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
 
 class Repository(models.Model):
     url = models.CharField(max_length=256, unique=True)
@@ -203,13 +224,66 @@ class CommitsMetrics(models.Model):
         choices=[(tag, tag.value) for tag in PeriodChoice]
     )
 
+    @classmethod
+    def max(cls):
+        d = {}
+        for period in PeriodChoice:
+            all = [x.metrics for x in cls.objects.filter(period=period)]
+            d[str(period)] = {}
+            for k in all[0].keys():
+                d[str(period)][k] = []
+            for entry in all:
+                for k in all[0]:
+                    d[str(period)][k].append(entry[k])
+            for k in all[0]:
+                d[str(period)][k] = max(d[str(period)][k])
+        return d
+
+    @classmethod
+    def metrics_developer(cls, developer):
+        d = {}
+        for value in cls.objects.filter(commiter=developer):
+            d[str(value.period)] = value.metrics
+        return d
 
     @property
     def metrics(self):
-        return dict(sum=int(self.add),
+        return dict(add=int(self.add),
                     sub=int(self.sub),
                     churn=int(self.churn),
                     merges=int(self.merges),
-                    char_sum=int(self.char_add),
+                    char_add=int(self.char_add),
                     char_sub=int(self.char_sub),
                     char_churn=int(self.char_churn))
+
+    @classmethod
+    def metrics_norm_developer(cls, developer):
+        d = {}
+        for value in cls.objects.filter(commiter=developer):
+            d[str(value.period)] = value.metrics_norm
+        return d
+
+    @property
+    def metrics_norm(self):
+        def norm_func(value, high):
+            from math import log
+            return log(1 + (value/high)*100)
+
+        high = self.max()[self.period]
+        values =  dict(add=self.add,
+                    sub=self.sub,
+                    churn=self.churn,
+                    merges=self.merges,
+                    char_add=self.char_add,
+                    char_sub=self.char_sub,
+                    char_churn=self.char_churn)
+        for k,v in values.items():
+            values[k] = norm_func(v, high[k])
+        return values
+
+    def __repr__(self):
+        return "< {period} - {commiter} - {repo} >".format(period=self.period, commiter=self.commiter.email,
+                                                           repo=self.repo.url if self.repo else "None")
+
+    def __str__(self):
+        return self.__repr__()
