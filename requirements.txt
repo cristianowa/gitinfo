@@ -6,3 +6,5 @@ path.py
 psycopg2-binary
 requests
 django-graphos
+pandas
+matplotlib
