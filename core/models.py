@@ -25,7 +25,7 @@ class Commiter(models.Model):
 
 class CommitList(list):
     @property
-    def sum(self):
+    def add(self):
         return sum([commit.add for commit in self])
 
     @property
@@ -37,7 +37,7 @@ class CommitList(list):
         return sum([commit.churn for commit in self])
 
     @property
-    def char_sum(self):
+    def char_add(self):
         return sum([commit.add for commit in self])
 
     @property
@@ -54,8 +54,8 @@ class CommitList(list):
 
     @property
     def metrics(self):
-        return dict(sum=self.sum, sub=self.sub, churn=self.churn, merges=self.merges,
-                    char_sum=self.char_sum, char_sub=self.char_sub, char_churn=self.char_churn)
+        return dict(add=self.add, sub=self.sub, churn=self.churn, merges=self.merges,
+                    char_sum=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
 
 class Repository(models.Model):
     url = models.CharField(max_length=256, unique=True)
@@ -189,10 +189,10 @@ class PeriodChoice(Enum):
 
 
 class CommitsMetrics(models.Model):
-    sum = models.IntegerField(default=0)
+    add = models.IntegerField(default=0)
     sub = models.IntegerField(default=0)
     churn = models.IntegerField(default=0)
-    char_sum = models.IntegerField(default=0)
+    char_add = models.IntegerField(default=0)
     char_sub = models.IntegerField(default=0)
     char_churn = models.IntegerField(default=0)
     merges = models.IntegerField(default=0)
@@ -206,10 +206,10 @@ class CommitsMetrics(models.Model):
 
     @property
     def metrics(self):
-        return dict(sum=int(self.sum),
+        return dict(sum=int(self.add),
                     sub=int(self.sub),
                     churn=int(self.churn),
                     merges=int(self.merges),
-                    char_sum=int(self.char_sum),
+                    char_sum=int(self.char_add),
                     char_sub=int(self.char_sub),
                     char_churn=int(self.char_churn))
