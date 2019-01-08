@@ -1,0 +1,13 @@
+{% include "header.html" %}
+{{ developer }}
+<ul>
+{% for commiter in commiters %}
+    <li>
+        <h5><a href="/developer/{{ commiter.id }}/">{{ commiter.email }}</a></h5>
+
+    </li>
+{% endfor %}
+</ul>
+
+
+{% include "footer.html" %}

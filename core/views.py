@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
@@ -149,6 +149,31 @@ def sshkey(request):
         sshkey = open(os.path.join(os.environ.get("HOME"), ".ssh/id_rsa.pub")).read()
 
     return render(request, "ssh_key.html", dict(sshkey=sshkey))
+
+def developers(request):
+    from . models import Commiter
+    commiters = [dict(id=c.id, email=c.email) for c in Commiter.objects.all()]
+    return render(request, "developers.html", dict(commiters=commiters))
+
+
+def developer(request, pk):
+    from .models import Commiter, CommitsMetrics
+    commiter = Commiter.objects.get(id=pk)
+    metrics = CommitsMetrics.metrics_developer(commiter)
+    return render(request, "developer.html", dict(commiter=commiter, metrics=metrics, metrics_names=[''] + list(list(metrics.values())[0].keys())))
+
+
+def developer_radar(request, pk, days):
+    from .models import Commiter, CommitsMetrics
+    from .graphs import radar_plot
+    import tempfile
+    tmp = tempfile.mktemp(".png")
+    commiter = Commiter.objects.get(id=pk)
+    metrics = CommitsMetrics.metrics_norm_developer(commiter)
+    radar_plot(tmp, metrics["PeriodChoice.LAST{}".format(days)])
+    with open(tmp, "rb") as f:
+        bytes = f.read()
+    return HttpResponse(bytes, content_type="image/png")
 
 
 def repository(request, pk):

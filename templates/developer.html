@@ -1,0 +1,43 @@
+{% include "header.html" %}
+<h4>
+    {{ commiter.email }}
+</h4>
+<table>
+    <tr>
+        {% for key in metrics_names %}
+            <td> {{ key }} </td>
+        {% endfor %}
+    </tr>
+    {% for period, metric in metrics.items %}
+        <tr>
+            <td>{{ period }}</td>
+            {% for value in metric.values %}
+                <td>{{ value }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+<table>
+    <tr>
+        <h5>30 Days </h5>
+        <img src="/developer/{{ commiter.id }}/30/radar.png" alt="Developer Radar" height="400" width="400">
+    </tr>
+    <tr>
+        <h5>60 Days </h5>
+        <img src="/developer/{{ commiter.id }}/60/radar.png" alt="Developer Radar" height="400" width="400">
+    </tr>
+    <tr>
+        <h5>90 Days </h5>
+        <img src="/developer/{{ commiter.id }}/90/radar.png" alt="Developer Radar" height="400" width="400">
+    </tr>
+    <tr>
+        <h5>180 Days </h5>
+        <img src="/developer/{{ commiter.id }}/180/radar.png" alt="Developer Radar" height="400" width="400">
+    </tr>
+    <tr>
+        <h5>360 Days </h5>
+        <img src="/developer/{{ commiter.id }}/360/radar.png" alt="Developer Radar" height="400" width="400">
+    </tr>
+</table>
+
+{% include "footer.html" %}
