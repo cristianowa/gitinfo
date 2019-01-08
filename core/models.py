@@ -1,4 +1,6 @@
 import os
+from enum import Enum
+
 from django.db import models
 import re
 
@@ -176,3 +178,38 @@ class Submodule(models.Model):
         
     def __str__(self):
         return self.__repr__()
+
+
+class PeriodChoice(Enum):
+    LAST30 = "Last 30 days"
+    LAST60 = "Last 60 days"
+    LAST90 = "Last 90 days"
+    LAST180 = "Last 180 days"
+    LAST360 = "Last 360 days"
+
+
+class CommitsMetrics(models.Model):
+    sum = models.IntegerField(default=0)
+    sub = models.IntegerField(default=0)
+    churn = models.IntegerField(default=0)
+    char_sum = models.IntegerField(default=0)
+    char_sub = models.IntegerField(default=0)
+    char_churn = models.IntegerField(default=0)
+    merges = models.IntegerField(default=0)
+    commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
+    repo = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True)
+    period = models.CharField(
+        max_length=15,
+        choices=[(tag, tag.value) for tag in PeriodChoice]
+    )
+
+
+    @property
+    def metrics(self):
+        return dict(sum=int(self.sum),
+                    sub=int(self.sub),
+                    churn=int(self.churn),
+                    merges=int(self.merges),
+                    char_sum=int(self.char_sum),
+                    char_sub=int(self.char_sub),
+                    char_churn=int(self.char_churn))

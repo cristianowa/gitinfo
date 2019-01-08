@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Commit, Submodule, CommitErrorType, Repository, Commiter
+from core.models import Commit, Submodule, CommitErrorType, Repository, Commiter, CommitsMetrics
 
 class CommiterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,4 +36,7 @@ class SubmoduleSerializer(serializers.ModelSerializer):
         fields = ('url','holder','dependency')
 
 
-    
+class CommitsMetricsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommitsMetrics
+        fields = ('id','sub', 'add',' churn', 'merges', 'char_add', 'char_churn', 'char_sub')

@@ -6,9 +6,9 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
 
 from .graphs import get_graph
-from .models import Commiter, Submodule, Commit, CommitErrorType, Repository
+from .models import Commiter, Submodule, Commit, CommitErrorType, Repository, CommitsMetrics
 from .serializers import CommiterSerializer, SubmoduleSerializer, CommitSerializer, CommitErrorTypeSerializer,\
-    RepositorySerializer, commits_serializer
+    RepositorySerializer, commits_serializer, CommitsMetricsSerializer
 from .forms import NewRepository
 
 # Create your views here.
@@ -59,6 +59,23 @@ class GetUpdateDeleteSubmodule(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend, )
     filter_fields = SubmoduleSerializer.Meta.fields
+
+
+class CommitsMetricsList(generics.ListCreateAPIView):
+    queryset = CommitsMetrics.objects.all()
+    serializer_class = SubmoduleSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = SubmoduleSerializer.Meta.fields
+
+
+class GetUpdateDeleteCommitsMetrics(generics.RetrieveUpdateDestroyAPIView):
+    model = CommitsMetrics
+    serializer_class = CommitsMetricsSerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = SubmoduleSerializer.Meta.fields
+
 
  
 class RepositoryList(generics.ListCreateAPIView):

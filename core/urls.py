@@ -20,4 +20,6 @@ urlpatterns = [
     url(r'^api/submodule/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteSubmodule.as_view()),
     url(r'^api/commiterrortype/$', views.CommiterrortypeList.as_view()),
     url(r'^api/commiterrortype/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteCommiterrortype.as_view()),
+    url(r'^api/commitsmetrics/$', views.CommitsMetricsList.as_view()),
+    url(r'^api/commitsmetrics/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteCommitsMetrics.as_view()),
 ]
