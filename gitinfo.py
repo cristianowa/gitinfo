@@ -180,19 +180,53 @@ class Commits(list):
                                                                          report[dev]["count"], report[dev]["merge"]]]))
 
 
+class Tag:
+    def __init__(self, tag, sha1, message, tagger):
+        self.tag = tag
+        self.sha1 = sha1
+        self.tagger = tagger
+        self.message = message
+
+class Tags(list):
+    def load_tags(self, wd=None):
+        if wd:
+            cwd = os.getcwd()
+            os.chdir(wd)
+        else:
+            cwd = None
+        tags = cmd("git tag").split("\n")
+        for tag in tags:
+            try:
+                taginfo = cmd("git cat-file tag {}".format(tag))
+                tagger = re.findall("<([0-9a-zA-Z\._\-]*@[0-9a-zA-Z\._]*)>", taginfo)[0]
+                sha1 = re.findall("object *([0-9a-z]*)", taginfo)[0]
+                message = taginfo.split("\n")[-1]
+                message = message.replace(tag, "").strip()
+            except Exception  as e:
+                tagger = sha1 = message = None
+            self.append(Tag(tag, sha1, message, tagger))
+        if cwd:
+            os.chdir(cwd)
+
+
 if __name__ == "__main__":
-    p = argparse.ArgumentParser("Gitinfo")
-    p.add_argument("--report", help="CSV report file", default=None)
-    p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY", default=None)
-    p.add_argument("repos", nargs='+')
-    args = p.parse_args()
-    c = Commits()
-    for repo in args.repos:
-        c.load_commits(repo)
-    if args.date:
-        c = c.from_date(date=args.date)
-    c.report_to_screen()
-    if args.report:
-        c.report_to_csv(args.report)
-
-
+    t = Tags()
+    t.load_tags("D:\\repo\\roteamento\caronte")
+    for x in t:
+        assert isinstance(x, Tag)
+        print(x.tag, x.sha1, x.tagger, x.message)
+    # p = argparse.ArgumentParser("Gitinfo")
+    # p.add_argument("--report", help="CSV report file", default=None)
+    # p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY", default=None)
+    # p.add_argument("repos", nargs='+')
+    # args = p.parse_args()
+    # c = Commits()
+    # for repo in args.repos:
+    #     c.load_commits(repo)
+    # if args.date:
+    #     c = c.from_date(date=args.date)
+    # c.report_to_screen()
+    # if args.report:
+    #     c.report_to_csv(args.report)
+    #
+    #
