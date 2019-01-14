@@ -203,7 +203,9 @@ class Tags(list):
                 message = taginfo.split("\n")[-1]
                 message = message.replace(tag, "").strip()
             except Exception  as e:
-                tagger = sha1 = message = None
+                gitlog = cmd("git log -n 1  {}".format(tag))
+                sha1 = re.findall("commit *([0-9a-z]*)", gitlog)[0]
+                tagger = message = None
             self.append(Tag(tag, sha1, message, tagger))
         if cwd:
             os.chdir(cwd)
