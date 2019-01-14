@@ -160,7 +160,7 @@ class Commit(models.Model):
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     date = models.DateTimeField(default="1990-01-01 09:30")
-    sha1 = models.CharField(max_length=100)
+    sha1 = models.CharField(max_length=100) # TODO add unique
     add = models.IntegerField()
     sub = models.IntegerField()
     churn = models.IntegerField()
@@ -216,6 +216,7 @@ class CommitsMetrics(models.Model):
     char_sub = models.IntegerField(default=0)
     char_churn = models.IntegerField(default=0)
     merges = models.IntegerField(default=0)
+    tags = models.IntegerField(default=0)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     repo = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True)
     period = models.CharField(
@@ -286,3 +287,10 @@ class CommitsMetrics(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
+
+class Tag(models.Model):
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE)
+    commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=256, null=True)
+    message = models.CharField(max_length=256, null=True)
