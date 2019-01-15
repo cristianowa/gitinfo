@@ -41,6 +41,13 @@ class Commiter(models.Model):
                                             )
             commit_metrics.save()
 
+    @property
+    def repositories(self):
+        return list(Repository.objects.filter(commiter=self))
+
+    @property
+    def metrics(self):
+        return CommitsMetrics.metrics_developer(self)
 
 
 class CommitList(list):
