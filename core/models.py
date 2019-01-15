@@ -43,6 +43,13 @@ class Commiter(models.Model):
                                             )
             commit_metrics.save()
 
+    @property
+    def repositories(self):
+        return list(Repository.objects.filter(commiter=self))
+
+    @property
+    def metrics(self):
+        return CommitsMetrics.metrics_developer(self)
 
 
 class CommitList(list):
@@ -166,6 +173,13 @@ class Repository(models.Model):
     def filter_commits(self, **kwargs):
         return CommitList(Commit.objects.filter(repository=self, **kwargs))
 
+    @property
+    def depended_by(self):
+        return [x.holder for x in Submodule.objects.filter(dependency=self)]
+
+    @property
+    def depends_of(self):
+        return [x.dependency for x in Submodule.objects.filter(holder=self)]
 
 
 class Commit(models.Model):
