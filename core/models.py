@@ -161,6 +161,13 @@ class Repository(models.Model):
     def filter_commits(self, **kwargs):
         return CommitList(Commit.objects.filter(repository=self, **kwargs))
 
+    @property
+    def depended_by(self):
+        return [x.holder for x in Submodule.objects.filter(dependency=self)]
+
+    @property
+    def depends_of(self):
+        return [x.dependency for x in Submodule.objects.filter(holder=self)]
 
 
 class Commit(models.Model):
