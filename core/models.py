@@ -29,6 +29,7 @@ class Commiter(models.Model):
             days = re.findall("[0-9]+", period.name)[0]
             period_start = datetime.today() - timedelta(days=int(days))
             commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
+            repos = list(set([c.repository.url for c in commit_list]))
             commit_metrics = CommitsMetrics(add=commit_list.add,
                                             sub=commit_list.sub,
                                             churn=commit_list.churn,
@@ -37,6 +38,7 @@ class Commiter(models.Model):
                                             char_churn=commit_list.char_churn,
                                             merges=commit_list.merges,
                                             commiter=self,
+                                            repositories=len(repos),
                                             period=period
                                             )
             commit_metrics.save()
@@ -136,8 +138,18 @@ class Repository(models.Model):
 
             # TODO: remove removed submddules
 
-
-
+        tags = gitinfo.Tags()
+        tags.load_tags(tmp)
+        for tag in tags:
+            if tag.tagger:
+                commiter = Commiter.objects.get(email=tag.tagger)
+            else:
+                commiter = None
+            commit = Commit.objects.get(sha1=tag.sha1)
+            t = Tag(commiter=commiter,
+                    commit=commit,
+                    name=tag.tag, message=tag.message)
+            t.save()
         os.chdir(oldwd)
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -217,6 +229,7 @@ class CommitsMetrics(models.Model):
     char_churn = models.IntegerField(default=0)
     merges = models.IntegerField(default=0)
     tags = models.IntegerField(default=0)
+    repositories = models.IntegerField(default=0)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     repo = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True)
     period = models.CharField(
@@ -254,6 +267,7 @@ class CommitsMetrics(models.Model):
                     merges=int(self.merges),
                     char_add=int(self.char_add),
                     char_sub=int(self.char_sub),
+                    repositories=int(self.repositories),
                     char_churn=int(self.char_churn))
 
     @classmethod
@@ -275,6 +289,7 @@ class CommitsMetrics(models.Model):
                     churn=self.churn,
                     merges=self.merges,
                     char_add=self.char_add,
+                    repositories=self.repositories,
                     char_sub=self.char_sub,
                     char_churn=self.char_churn)
         for k,v in values.items():
