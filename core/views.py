@@ -169,8 +169,18 @@ def developer_radar(request, pk, days):
     import tempfile
     tmp = tempfile.mktemp(".png")
     commiter = Commiter.objects.get(id=pk)
-    metrics = CommitsMetrics.metrics_norm_developer(commiter)
-    radar_plot(tmp, metrics["PeriodChoice.LAST{}".format(days)])
+    raw_metrics = CommitsMetrics.metrics_norm_developer(commiter)
+    if days=="all":
+        # metrics = {}
+        labels= list(raw_metrics.keys())
+        # for day in raw_metrics.keys():
+        #     for k in raw_metrics[list(raw_metrics.keys())[0]].keys():
+        #         metrics[k].append(raw_metrics[day][k])
+        metrics = list(raw_metrics.values())
+    else:
+        metrics = raw_metrics["PeriodChoice.LAST{}".format(days)]
+        labels = [days]
+    radar_plot(tmp, metrics, labels=labels)
     with open(tmp, "rb") as f:
         bytes = f.read()
     return HttpResponse(bytes, content_type="image/png")

@@ -257,7 +257,7 @@ class CommitsMetrics(models.Model):
     def max(cls):
         d = {}
         for period in PeriodChoice:
-            all = [x.metrics for x in cls.objects.filter(period=period)]
+            all = [x.metrics for x in cls.objects.all()]
             d[str(period)] = {}
             for k in all[0].keys():
                 d[str(period)][k] = []
@@ -283,6 +283,7 @@ class CommitsMetrics(models.Model):
                     merges=int(self.merges),
                     char_add=int(self.char_add),
                     char_sub=int(self.char_sub),
+                    tags=int(self.tags),
                     repositories=int(self.repositories),
                     char_churn=int(self.char_churn))
 
@@ -290,13 +291,15 @@ class CommitsMetrics(models.Model):
     def metrics_norm_developer(cls, developer):
         d = {}
         for value in cls.objects.filter(commiter=developer):
-            d[str(value.period)] = value.metrics_norm
+            k = list(filter(lambda v:str(value.period).__contains__(v.name),list(PeriodChoice)))[0].value
+            d[k] = value.metrics_norm
         return d
 
     @property
     def metrics_norm(self):
         def norm_func(value, high):
             from math import log
+            high = high if high != 0 else 1
             return log(1 + (value/high)*100)
 
         high = self.max()[self.period]
@@ -305,6 +308,7 @@ class CommitsMetrics(models.Model):
                     churn=self.churn,
                     merges=self.merges,
                     char_add=self.char_add,
+                    tags=self.tags,
                     repositories=self.repositories,
                     char_sub=self.char_sub,
                     char_churn=self.char_churn)

@@ -109,7 +109,7 @@ class Commits(list):
             os.chdir(wd)
         else:
             cwd = None
-        commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"300 days ago\" ").split("\n")]
+        commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"10000 days ago\" ").split("\n")]
         merges = cmd("git log --merges --oneline | cut -d ' ' -f 1").split("\n")
         for commit in commits[:-2]:
             self.append(Commit(*commit, merge=commit[0] in merges))
