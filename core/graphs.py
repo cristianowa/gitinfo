@@ -81,7 +81,6 @@ def radar_plot(filename, data, labels=None):
     plt.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
 
     plt.savefig(filename)
-    plt.show()
 
 if __name__ == '__main__':
     data1 = {'merges': 1, 'char_sub': 1, 'sub': 2, 'sum': 4, 'char_churn': 1, 'churn': 2, 'char_sum': 5}
