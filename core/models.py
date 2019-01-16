@@ -88,7 +88,7 @@ class CommitList(list):
 
 class Repository(models.Model):
     url = models.CharField(max_length=256, unique=True)
-
+    branch = models.CharField(max_length=256, default="master")
     def update(self):
         from gitinfo import cmd
         import shutil
@@ -96,10 +96,12 @@ class Repository(models.Model):
         import tempfile
         tmp = tempfile.mkdtemp()
         cmd("git clone {0} {1}".format(self.url, tmp))
-        commits = gitinfo.Commits()
-        commits.load_commits(tmp)
         oldwd = os.getcwd()
         os.chdir(tmp)
+        cmd("git checkout origin/{}".format(self.branch))
+        cmd("git checkout -B {}".format(self.branch))
+        commits = gitinfo.Commits()
+        commits.load_commits(tmp)
         for commit in commits:
             try:
                 dbcommit = Commit.objects.get(sha1=commit.sha1)
@@ -152,7 +154,7 @@ class Repository(models.Model):
                 commiter = Commiter.objects.get(email=tag.tagger)
             else:
                 commiter = None
-            commit = Commit.objects.get(sha1=tag.sha1)
+            commit = Commit.objects.get(sha1=tag.sha1[:7])
             t = Tag(commiter=commiter,
                     commit=commit,
                     name=tag.tag, message=tag.message)
