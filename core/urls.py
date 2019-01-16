@@ -10,7 +10,7 @@ urlpatterns = [
     url(r'^submodules/', views.submodules),
     url(r'^developers/', views.developers),
     url(r'^developer/(?P<pk>[0-9]+)/$', views.developer),
-    url(r'^developer/(?P<pk>[0-9]+)/(?P<days>[0-9]+)/radar.png', views.developer_radar),
+    url(r'^developer/(?P<pk>[0-9]+)/(?P<days>[0-9al]+)/radar.png', views.developer_radar),
     url(r'^sshkey/', views.sshkey),
     url(r"^api/dump/", views.dump),
     url(r'^api/repository/(?P<pk>[0-9]+)/$', views.GetUpdateDeleteRepository.as_view()),
