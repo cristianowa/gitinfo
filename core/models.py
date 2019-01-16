@@ -154,7 +154,11 @@ class Repository(models.Model):
                 commiter = Commiter.objects.get(email=tag.tagger)
             else:
                 commiter = None
-            commit = Commit.objects.get(sha1=tag.sha1[:7])
+            try:
+                commit = Commit.objects.get(sha1=tag.sha1[:7])
+            except Commit.DoesNotExist:
+                print("Error : {}".format(tag.sha1[:7]))
+                continue # tags without commit are out of main branch and are not computed
             t = Tag(commiter=commiter,
                     commit=commit,
                     name=tag.tag, message=tag.message)
