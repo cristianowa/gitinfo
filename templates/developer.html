@@ -2,43 +2,50 @@
 <h4>
     {{ commiter.email }}
 </h4>
-<h6><a href="/developer/{{ commiter.id }}/info.csv"> information.csv </a> </h6>
+<h6><a href="/developer/{{ commiter.id }}/info.csv"> information.csv </a></h6>
 <table>
     <tr>
         {% for key in metrics_names %}
-            <td> {{ key }} </td>
+        <td> {{ key }}</td>
         {% endfor %}
     </tr>
     {% for period, metric in metrics.items %}
-        <tr>
-            <td>{{ period }}</td>
-            {% for value in metric.values %}
-                <td>{{ value }}</td>
-            {% endfor %}
-        </tr>
+    <tr>
+        <td>{{ period }}</td>
+        {% for value in metric.values %}
+        <td>{{ value }}</td>
+        {% endfor %}
+    </tr>
     {% endfor %}
 </table>
+<ul>
+
+    <li>
+        <a href="/developer/{{ commiter.id }}/30/radar.png" alt="Developer Radar" height="400" width="400">
+            <h5> Radar 30 Days </h5></a>
+    </li>
+    <li>
+        <a href="/developer/{{ commiter.id }}/60/radar.png" alt="Developer Radar" height="400" width="400">
+            <h5> Radar 60 Days </h5></a>
+    </li>
+    <li>
+        <a href="/developer/{{ commiter.id }}/90/radar.png" alt="Developer Radar" height="400" width="400">
+            <h5> Radar 90 Days </h5></a>
+    </li>
+    <li>
+        <a href="/developer/{{ commiter.id }}/180/radar.png" alt="Developer Radar" height="400" width="400">
+            <h5> Radar 180 Days </h5></a>
+    </li>
+    <li>
+        <a href="/developer/{{ commiter.id }}/360/radar.png" alt="Developer Radar" height="400" width="400">
+            <h5> Radar 360 Days </h5></a>
+    </li>
+</ul>
 <table>
-    <tr>
-        <h5>30 Days </h5>
-        <img src="/developer/{{ commiter.id }}/30/radar.png" alt="Developer Radar" height="400" width="400">
-    </tr>
-    <tr>
-        <h5>60 Days </h5>
-        <img src="/developer/{{ commiter.id }}/60/radar.png" alt="Developer Radar" height="400" width="400">
-    </tr>
-    <tr>
-        <h5>90 Days </h5>
-        <img src="/developer/{{ commiter.id }}/90/radar.png" alt="Developer Radar" height="400" width="400">
-    </tr>
-    <tr>
-        <h5>180 Days </h5>
-        <img src="/developer/{{ commiter.id }}/180/radar.png" alt="Developer Radar" height="400" width="400">
-    </tr>
-    <tr>
-        <h5>360 Days </h5>
-        <img src="/developer/{{ commiter.id }}/360/radar.png" alt="Developer Radar" height="400" width="400">
-    </tr>
+ <img src="/developer/{{ commiter.id }}/all/radar.png" alt="Developer Radar" height="800" width="1000">
 </table>
+<br>
+<br>
+
 
 {% include "footer.html" %}
