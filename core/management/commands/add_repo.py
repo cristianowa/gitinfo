@@ -11,8 +11,10 @@ class Command(BaseCommand):
         branch = options["branch"] or "master"
         repo = Repository(url=url, branch=branch)
         repo.save()
-        repo.update()
+        if not options["import_only"]:
+            repo.update()
 
     def add_arguments(self, parser):
         parser.add_argument('url')
         parser.add_argument('--branch', default=None)
+        parser.add_argument('--import-only', action='store_true', default=False)
