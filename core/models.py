@@ -45,12 +45,25 @@ class Commiter(models.Model):
 
     @property
     def repositories(self):
-        return list(Repository.objects.filter(commiter=self))
+        commits = Commit.objects.filter(commiter=self)
+        return list(set([c.repository for c in commits]))
 
     @property
     def metrics(self):
         return CommitsMetrics.metrics_developer(self)
 
+    @property
+    def metrics_normalized(self):
+        return CommitsMetrics.metrics_norm_developer(self)
+
+
+    @property
+    def report(self):
+        d = dict()
+        d["metrics"] = self.metrics
+        d["metrics_normalized"] = self.metrics_normalized
+        d["repositories"] = [r.dict() for r in self.repositories]
+        return d
 
 class CommitList(list):
     @property
@@ -171,6 +184,9 @@ class Repository(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
+    def dict(self):
+        return dict(url=self.url)
 
     @property
     def commits(self):
