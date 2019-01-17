@@ -16,14 +16,3 @@ class Command(BaseCommand):
                 print(e)
                 print(repo)
                 traceback.print_exc()
-        for commiter in Commiter.objects.all():
-            try:
-                print(commiter)
-                commiter.update()
-            except Exception as e:
-                print("===========> error")
-                print(e)
-                print(commiter)
-                traceback.print_exc()
-
-
