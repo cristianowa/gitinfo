@@ -178,7 +178,7 @@ def developer_radar(request, pk, days):
         #         metrics[k].append(raw_metrics[day][k])
         metrics = list(raw_metrics.values())
     else:
-        metrics = raw_metrics["PeriodChoice.LAST{}".format(days)]
+        metrics = raw_metrics["Last {} days".format(days)]
         labels = [days]
     radar_plot(tmp, metrics, labels=labels)
     with open(tmp, "rb") as f:
