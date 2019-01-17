@@ -3,7 +3,7 @@
 <ul>
 {% for commiter in commiters %}
     <li>
-        <h5><a href="/developer/{{ commiter.id }}/">{{ commiter.email }}</a></h5>
+        <h5><a href="/developer/{{ commiter.id }}/">{{ commiter.email }}</a> -  <a href="/developer/{{ commiter.id }}/info.csv"> CSV </a>  </h5>
 
     </li>
 {% endfor %}

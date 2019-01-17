@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
-
+import pandas as pd
 from .graphs import get_graph
 from .models import Commiter, Submodule, Commit, CommitErrorType, Repository, CommitsMetrics
 from .serializers import CommiterSerializer, SubmoduleSerializer, CommitSerializer, CommitErrorTypeSerializer,\
@@ -184,6 +184,24 @@ def developer_radar(request, pk, days):
     with open(tmp, "rb") as f:
         bytes = f.read()
     return HttpResponse(bytes, content_type="image/png")
+
+def developer_csv(request, pk):
+    import csv
+    # Create the HttpResponse object with the appropriate CSV header.
+    dev = Commiter.objects.get(id=pk)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dev.email)
+
+    report = dev.report
+    response.write("\nMetrics\n")
+    response.write(pd.DataFrame.from_dict(report["metrics"]).to_csv())
+    response.write("\nMetrics Normalized\n")
+    response.write(pd.DataFrame.from_dict(report["metrics_normalized"]).to_csv())
+    response.write("\nRepositories\n")
+    response.write(pd.DataFrame.from_dict(report["repositories"]).to_csv())
+
+    return response
 
 
 def repository(request, pk):
