@@ -30,6 +30,7 @@ class Commiter(models.Model):
             period_start = datetime.today() - timedelta(days=int(days))
             commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
             repos = list(set([c.repository.url for c in commit_list]))
+            tags = list(Tag.objects.filter(commiter=self))
             commit_metrics = CommitsMetrics(add=commit_list.add,
                                             sub=commit_list.sub,
                                             churn=commit_list.churn,
@@ -38,6 +39,7 @@ class Commiter(models.Model):
                                             char_churn=commit_list.char_churn,
                                             merges=commit_list.merges,
                                             commiter=self,
+                                            tags=len(tags),
                                             repositories=len(repos),
                                             period=period
                                             )
@@ -349,3 +351,12 @@ class Tag(models.Model):
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=256, null=True)
     message = models.CharField(max_length=256, null=True)
+
+    def __repr__(self):
+        sha1= self.commit.sha1 if self.commit else "0000000"
+        email = self.commiter.email if self.commiter else "None"
+        name = self.name if self.name else "None"
+        return "< {sha1} - {commiter} - {name} >".format(sha1=sha1, commiter=email,name=name)
+
+    def __str__(self):
+        return self.__repr__()

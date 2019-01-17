@@ -1,5 +1,5 @@
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.decorators import api_view
@@ -223,12 +223,13 @@ def add_repository(request):
             repo = Repository(url=url)
             repo.save()
             repo.update()
-            repos = [dict(name=r.url,
-                          pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
-                          pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
-                          bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
-                          bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in [repo]]
-            return render(request, "main.html", dict(repos=repos))
+            return redirect("/")
+            # repos = [dict(name=r.url,
+            #               pie_normal_url="/git/graph/pie/normal/?repository={}".format(r.url),
+            #               pie_log_url="/git/graph/pie/log/?repository={}".format(r.url),
+            #               bar_normal_url="/git/graph/bar/log/?repository={}".format(r.url),
+            #               bar_log_url="/git/graph/bar/log/?repository={}".format(r.url)) for r in [repo]]
+            # return render(request, "main.html", dict(repos=repos))
     else:
         form = NewRepository()
 
