@@ -3,7 +3,7 @@
 <ul>
 {% for repo in repos %}
     <li>
-        <h5><a href="">{{ repo.name }}</a></h5>
+        <h5><a href="/repository/{{ repo.id }}/">{{ repo.name }}</a></h5>
         <a href=/graph/bar/normal/?repository={{ repo.url }}> Bar Log </a>
         <a href=/graph/bar/normal/?repository={{ repo.url }}> Bar Normal </a>
         <a href=/graph/pie/log/?repository={{ repo.url }}> Pie Log </a>

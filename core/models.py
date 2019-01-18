@@ -181,6 +181,13 @@ class Repository(models.Model):
         os.chdir(oldwd)
         shutil.rmtree(tmp, ignore_errors=True)
 
+    @property
+    def timeline(self):
+        d = {}
+        for commit in self.commits:
+            d[commit.date] = commit.metrics
+        return d
+
     def __repr__(self):
         return "< {url} >".format(url=self.url)
 
@@ -218,6 +225,11 @@ class Commit(models.Model):
     char_sub = models.IntegerField()
     char_churn = models.IntegerField()
     merge = models.BooleanField()
+    @property
+    def metrics(self):
+        return dict(add=self.add, sub=self.sub, churn=self.churn,
+                    char_add=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
+
     @classmethod
     def load_commits(cls, repository):
         raise NotImplementedError()

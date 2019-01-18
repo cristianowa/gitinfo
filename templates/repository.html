@@ -1,3 +1,6 @@
 {% include "header.html" %}
-{{ sshkey }}
+<h1>{{  repository.url }}</h1>
+<br><h5>Default Branch: {{  repository.branch }}</h5>
+<br><h5><a href="/repository/{{ repository.id }}/timeline.csv">CSV Timeline</a></h5>
+<img src="/repository/{{ repository.id }}/timeline.png" alt="Repo Timeline" height="800" width="1000">
 {% include "footer.html" %}

@@ -1,3 +1,4 @@
+import os
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -138,7 +139,7 @@ def graph(request, draw, type):
 
 def main(request):
     repos = Repository.objects.all()
-    repos = [dict(name=r.url, url=r.url) for r in repos]
+    repos = [dict(name=r.url, url=r.url, id=r.id) for r in repos]
     return render(request, "main.html", dict(repos=repos))
 
 def sshkey(request):
@@ -183,6 +184,7 @@ def developer_radar(request, pk, days):
     radar_plot(tmp, metrics, labels=labels)
     with open(tmp, "rb") as f:
         bytes = f.read()
+    os.unlink(tmp)
     return HttpResponse(bytes, content_type="image/png")
 
 def developer_csv(request, pk):
@@ -207,7 +209,30 @@ def developer_csv(request, pk):
 def repository(request, pk):
     from .models import Repository
     repo = Repository.objects.get(id=pk)
+
     return render(request, "repository.html", dict(repository=repo))
+
+def repository_timeline_csv(request, pk):
+    from .models import Repository
+    repo = Repository.objects.get(id=pk)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(repo.url)
+    response.write(pd.DataFrame.from_dict(repo.timeline).to_csv())
+    return response
+
+def repository_timeline_graph(request, pk):
+    import tempfile
+    from .models import Repository
+    from .graphs import time_series
+    repo = Repository.objects.get(id=pk)
+    tmp = tempfile.mktemp(".png")
+    time_series(tmp, repo.timeline)
+    with open(tmp, "rb") as f:
+        bytes = f.read()
+    os.unlink(tmp)
+    return HttpResponse(bytes, content_type="image/png")
+
+
 
 def submodules(request):
     from .models import Submodule

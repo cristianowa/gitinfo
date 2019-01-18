@@ -5,6 +5,8 @@ urlpatterns = [
     url(r"^$", views.main),
 
     url(r'^repository/(?P<pk>[0-9]+)/$', views.repository),
+    url(r'^repository/(?P<pk>[0-9]+)/timeline.csv', views.repository_timeline_csv),
+    url(r'^repository/(?P<pk>[0-9]+)/timeline.png', views.repository_timeline_graph),
     url(r'^graph/(?P<draw>[a-z]+)/(?P<type>[a-z]+)/', views.graph),
     url(r'^repository/add/', views.add_repository),
     url(r'^submodules/', views.submodules),
