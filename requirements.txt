@@ -8,3 +8,5 @@ requests
 django-graphos
 pandas
 matplotlib
+mpld3
+jinja2

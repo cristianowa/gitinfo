@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import pandas as pd
 from math import pi
+import mpld3
 
 from graphos.renderers import yui
 
