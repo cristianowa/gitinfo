@@ -1,6 +1,14 @@
 {% include "header.html" %}
 <h1>{{  repository.url }}</h1>
 <br><h5>Default Branch: {{  repository.branch }}</h5>
+<br><h5>Depended by:</h5>
+{% for dep in repository.depended_by %}
+    <li> {{ dep }}</li>
+{% endfor %}
+<br><h5>Dependency of: </h5>
+{% for dep in repository.depends_of %}
+    <li>{{ dep }}</li>
+{% endfor %}
 <br><h5><a href="/repository/{{ repository.id }}/timeline.csv">CSV Timeline</a></h5>
 <img src="/repository/{{ repository.id }}/timeline.png" alt="Repo Timeline" height="800" width="1000">
 {% include "footer.html" %}
