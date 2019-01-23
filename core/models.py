@@ -146,18 +146,16 @@ class Repository(models.Model):
         modules_urls = cmd("git submodule foreach \"git ls-remote --get-url\"").split("\n")
         modules = list(filter(lambda k: "Entering '" not in k, modules_urls))
         for mod in modules:
-            if len(Submodule.objects.filter(holder=self, url=mod)) == 0 and mod != '':
-                candidate = Repository.objects.filter(url=mod)
-                if len(candidate) == 1:
-                    submodule_repo = candidate[0]
-                else:
-                    submodule_repo = None
+            if mod != '':
                 try:
                     submodule = Submodule.objects.get(holder=self, url=mod)
                 except Submodule.DoesNotExist:
                     submodule = Submodule(holder=self, url=mod)
-                if submodule_repo:
-                    submodule.dependency = submodule_repo
+                if submodule.dependency is None:
+                    try:
+                        submodule.dependency = Repository.objects.get(url=mod)
+                    except Repository.DoesNotExist:
+                        pass
                 submodule.save()
 
             # TODO: remove removed submddules
