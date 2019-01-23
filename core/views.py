@@ -239,6 +239,10 @@ def submodules(request):
     submodules = Submodule.objects.all()
     return render(request, "submodules.html", dict())
 
+def submodule_dependency_graph(request):
+    from .models import Submodule
+    return JsonResponse(Submodule.dependency_graph())
+
 def add_repository(request):
 
     if request.method == 'POST':

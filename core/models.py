@@ -258,6 +258,16 @@ class Submodule(models.Model):
         
     def __str__(self):
         return self.__repr__()
+    @classmethod
+    def dependency_graph(cls):
+        import networkx
+        g = networkx.DiGraph()
+        for entry in cls.objects.all():
+            g.add_node(entry.holder.url)
+            g.add_node(entry.url)
+            g.add_cycle([entry.holder.url, entry.url])
+        print(g)
+        return networkx.node_link_data(g)
 
 
 class PeriodChoice(Enum):
