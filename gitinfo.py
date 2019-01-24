@@ -86,8 +86,9 @@ class Commit:
                 else:
                     added_chars += added
                     removed_chars += removed
-
+        lines_changed = len(cmd("git whatchanged {} -1 --format=oneline".format(self.sha1)).split("\n")[1:])
         self.changes = dict(add=total_add, sub=total_sub, churn=churn,
+                            lines=lines_changed,
                             added_chars=added_chars, removed_chars=removed_chars, churned_chars=churned_chars)
 
 

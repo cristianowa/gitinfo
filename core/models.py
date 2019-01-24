@@ -135,6 +135,7 @@ class Repository(models.Model):
                                   add=commit.changes["add"],
                                   sub=commit.changes["sub"],
                                   churn=commit.changes["churn"],
+                                  files_changed=commit.changes["lines"],
                                   char_add=commit.changes["added_chars"],
                                   char_sub=commit.changes["removed_chars"],
                                   char_churn=commit.changes["churned_chars"],
@@ -222,10 +223,11 @@ class Commit(models.Model):
     char_add = models.IntegerField()
     char_sub = models.IntegerField()
     char_churn = models.IntegerField()
+    files_changed = models.IntegerField(default=0)
     merge = models.BooleanField()
     @property
     def metrics(self):
-        return dict(add=self.add, sub=self.sub, churn=self.churn,
+        return dict(add=self.add, sub=self.sub, churn=self.churn, files=self.files_changed,
                     char_add=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
 
     @classmethod
@@ -285,6 +287,7 @@ class CommitsMetrics(models.Model):
     char_add = models.IntegerField(default=0)
     char_sub = models.IntegerField(default=0)
     char_churn = models.IntegerField(default=0)
+    files_changed = models.IntegerField(default=0)
     merges = models.IntegerField(default=0)
     tags = models.IntegerField(default=0)
     repositories = models.IntegerField(default=0)
@@ -325,6 +328,7 @@ class CommitsMetrics(models.Model):
                     merges=int(self.merges),
                     char_add=int(self.char_add),
                     char_sub=int(self.char_sub),
+                    files=int(self.files_changed),
                     tags=int(self.tags),
                     repositories=int(self.repositories),
                     char_churn=int(self.char_churn))
@@ -345,11 +349,13 @@ class CommitsMetrics(models.Model):
             return log(1 + (value/high)*100)
 
         high = self.max()[self.period]
-        values =  dict(add=self.add,
+        #TODO: use self.metrics
+        values = dict(add=self.add,
                     sub=self.sub,
                     churn=self.churn,
                     merges=self.merges,
                     char_add=self.char_add,
+                    files=self.files_changed,
                     tags=self.tags,
                     repositories=self.repositories,
                     char_sub=self.char_sub,
