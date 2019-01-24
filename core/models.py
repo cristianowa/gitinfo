@@ -16,6 +16,15 @@ class Commiter(models.Model):
     def __str__(self):
         return self.__repr__()
 
+    @classmethod
+    def get(cls, email):
+        try:
+            commiter = Commiter.objects.get(email=email)
+        except Commiter.DoesNotExist:
+            commiter = Commiter(email=email)
+            commiter.save()
+        return commiter
+
     @property
     def commits(self):
         return CommitList(Commit.objects.filter(commiter=self))
@@ -131,11 +140,7 @@ class Repository(models.Model):
                 dbcommit = Commit.objects.get(sha1=commit.sha1)
             except Commit.DoesNotExist:
                 # now we create it
-                try:
-                    commiter = Commiter.objects.get(email=commit.commiter)
-                except Commiter.DoesNotExist:
-                    commiter = Commiter(email=commit.commiter)
-                    commiter.save()
+                commiter = Commiter.get(commit.commiter)
                 commit.parse_changes()
                 dbcommit = Commit(sha1=commit.sha1,
                                   repository=self,
@@ -150,6 +155,10 @@ class Repository(models.Model):
                                   char_churn=commit.changes["churned_chars"],
                                   merge=commit.merge)
                 dbcommit.save()
+                for dev, count in commit.blame.items():
+                    commiter = Commiter.get(dev)
+                    cbp = CommitBlamePercentage(commiter=commiter, commit=dbcommit, count=count)
+                    cbp.save()
 
         cmd("git submodule init")
         cmd("git submodule update")
@@ -249,6 +258,10 @@ class Commit(models.Model):
     def __str__(self):
         return self.__repr__()
 
+class CommitBlamePercentage(models.Model):
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE)
+    commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
+    count = models.IntegerField()
 
 class CommitErrorType(models.Model):
     name = models.CharField(max_length=100, unique=True)

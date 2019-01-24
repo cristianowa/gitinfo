@@ -10,6 +10,9 @@ from pprint import pprint
 import csv
 import argparse
 
+def grep(needle, haystack):
+    assert isinstance(haystack, list)
+    return list(filter(lambda k: k.find(needle) >= 0, haystack))
 
 def cmd(s):
     try:
@@ -43,6 +46,8 @@ class Commit:
         self.first_commit = first
         self.parse_changes()
         self.merge = merge
+        self.blame = {}
+        self.dev_porcentage()
 
     def parse_changes(self):
 #        ret = cmd("git log --oneline  --numstat {} -n 1".format(self.sha1))
@@ -90,6 +95,24 @@ class Commit:
         self.changes = dict(add=total_add, sub=total_sub, churn=churn,
                             lines=lines_changed,
                             added_chars=added_chars, removed_chars=removed_chars, churned_chars=churned_chars)
+        self.dev_porcentage()
+
+    def dev_porcentage(self):
+        self.blame = {}
+        cmd("git reset --hard")
+        cmd("git clean -fdx")
+        cmd("git checkout {}".format(self.sha1))
+        for file in cmd("git ls-files").split("\n"):
+            try:
+                blame = cmd("git blame  --line-porcelain {}".format(file)).split("\n")
+            except Exception:
+                continue# TODO: ignore submodules
+            blame = [line[line.rfind("<") + 1:line.rfind(">")] for line in grep('author-mail', blame)]
+            for commiter in list(set(blame)):
+                if self.blame.get(commiter):
+                    self.blame[commiter] += blame.count(commiter)
+                else:
+                    self.blame[commiter] = blame.count(commiter)
 
 
     def __repr__(self):
