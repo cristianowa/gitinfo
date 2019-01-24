@@ -67,6 +67,15 @@ class Commiter(models.Model):
         d["repositories"] = [r.dict() for r in self.repositories]
         return d
 
+    def write_report(self, fp):
+        import pandas as pd
+        fp.write("\nMetrics\n")
+        fp.write(pd.DataFrame.from_dict(self.metrics).to_csv())
+        fp.write("\nMetrics Normalized\n")
+        fp.write(pd.DataFrame.from_dict(self.metrics_normalized).to_csv())
+        fp.write("\nRepositories\n")
+        fp.write(pd.DataFrame.from_dict(self.repositories).to_csv())
+
 class CommitList(list):
     @property
     def add(self):

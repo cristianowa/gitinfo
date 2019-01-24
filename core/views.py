@@ -195,15 +195,29 @@ def developer_csv(request, pk):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dev.email)
 
-    report = dev.report
-    response.write("\nMetrics\n")
-    response.write(pd.DataFrame.from_dict(report["metrics"]).to_csv())
-    response.write("\nMetrics Normalized\n")
-    response.write(pd.DataFrame.from_dict(report["metrics_normalized"]).to_csv())
-    response.write("\nRepositories\n")
-    response.write(pd.DataFrame.from_dict(report["repositories"]).to_csv())
-
+    dev.write_report(response)
     return response
+def all_developers_csv(request):
+    import tempfile
+    import shutil
+    import io
+    import zipfile
+    tmpd = tempfile.mkdtemp()
+    s = io.BytesIO()
+    zf = zipfile.ZipFile(s, "w")
+    for dev in Commiter.objects.all():
+        filename = os.path.join(tmpd, "{}.csv".format(dev.email))
+        with open(filename, "w") as f:
+            dev.write_report(f)
+        fdir, fname = os.path.split(filename)
+        zip_path = os.path.join("", fname)
+        zf.write(filename, zip_path)
+    zf.close()
+    shutil.rmtree(tmpd)
+    resp = HttpResponse(s.getvalue(), content_type="application/x-zip-compressed")
+    resp['Content-Disposition'] = 'attachment; filename=all_developers.zip'
+    return resp
+
 
 
 def repository(request, pk):
