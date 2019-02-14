@@ -263,6 +263,12 @@ class CommitBlamePercentage(models.Model):
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     count = models.IntegerField()
 
+    def __repr__(self):
+        return "< {sha1} - {repo} - {who}>".format(sha1=self.commit.sha1, repo=self.commit.repository.url, who=self.commiter.email)
+
+    def __str__(self):
+        return self.__repr__()
+
 class CommitErrorType(models.Model):
     name = models.CharField(max_length=100, unique=True)
     def __repr__(self):
@@ -270,6 +276,11 @@ class CommitErrorType(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
+class CommitError(models.Model):
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE)
+    type = models.ForeignKey(CommitErrorType, on_delete=models.CASCADE)
+
 
 class Submodule(models.Model):
     url = models.CharField(max_length=256)
