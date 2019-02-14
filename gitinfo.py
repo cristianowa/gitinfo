@@ -98,22 +98,27 @@ class Commit:
         self.dev_porcentage()
 
     def dev_porcentage(self):
+        # assumining git-extra installed!
+        # map emails to users :
+        emails = cmd("git summary --email {}".format(self.sha1))
+        summary =cmd("git summary --line {}".format(self.sha1))
+        devs = {}
+        for line in emails.split("\n"):
+            if "@" not in line:
+                continue
+            devs[line[line.find("\t"):line.find("<")].strip()] = line[line.find("<") + 1:line.rfind(">")].strip()
+        for dev in list(reversed(list(devs.keys()))):
+            summary = summary.replace(dev, devs[dev])
         self.blame = {}
-        cmd("git reset --hard")
-        cmd("git clean -fdx")
-        cmd("git checkout {}".format(self.sha1))
-        for file in cmd("git ls-files").split("\n"):
-            try:
-                blame = cmd("git blame  --line-porcelain {}".format(file)).split("\n")
-            except Exception:
-                continue# TODO: ignore submodules
-            blame = [line[line.rfind("<") + 1:line.rfind(">")] for line in grep('author-mail', blame)]
-            for commiter in list(set(blame)):
-                if self.blame.get(commiter):
-                    self.blame[commiter] += blame.count(commiter)
-                else:
-                    self.blame[commiter] = blame.count(commiter)
+        for line in summary.split("\n"):
+            if "@" not in line:
+                continue
+            lines, commiter, percentage = re.sub(" +", " ", line).strip().split(" ")
+            if not self.blame.get(commiter):
+                self.blame[commiter] = 0
+            self.blame[commiter] += int(lines)
 
+        return self.blame
 
     def __repr__(self):
         return "<Commit {0} {1} {2}>".format(self.sha1, self.commiter, self.date.strftime("%Y-%m-%dT%H:%M:%SZ"))
@@ -236,11 +241,11 @@ class Tags(list):
 
 
 if __name__ == "__main__":
-    t = Tags()
-    t.load_tags("D:\\repo\\roteamento\caronte")
-    for x in t:
-        assert isinstance(x, Tag)
-        print(x.tag, x.sha1, x.tagger, x.message)
+    c = Commits()
+    c.load_commits(cmd("pwd"))
+    print("loaded!")
+    print(c[20].dev_porcentage())
+
     # p = argparse.ArgumentParser("Gitinfo")
     # p.add_argument("--report", help="CSV report file", default=None)
     # p.add_argument("--date", help="Date to start the parse, format : DD/MM/YYYY", default=None)
