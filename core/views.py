@@ -171,6 +171,8 @@ def developer_radar(request, pk, days):
     tmp = tempfile.mktemp(".png")
     commiter = Commiter.objects.get(id=pk)
     raw_metrics = CommitsMetrics.metrics_norm_developer(commiter)
+    for k in  raw_metrics.keys():
+        del raw_metrics[k]["files"]
     if days=="all":
         # metrics = {}
         labels= list(raw_metrics.keys())
@@ -233,6 +235,29 @@ def repository_timeline_csv(request, pk):
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(repo.url)
     response.write(pd.DataFrame.from_dict(repo.timeline).to_csv())
     return response
+
+def repository_blame_timeline_csv(request, pk):
+    from .models import Repository
+    repo = Repository.objects.get(id=pk)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(repo.url)
+    response.write(pd.DataFrame.from_dict(repo.blame_timeline).to_csv())
+    return response
+
+def repository_blame_timeline_graph(request, pk):
+    import tempfile
+    from .models import Repository
+    from matplotlib import pyplot as plt
+    tmp = tempfile.mktemp(".png")
+    repo = Repository.objects.get(id=pk)
+    df = pd.DataFrame.from_dict(repo.blame_timeline)
+    df.plot.area()
+    plt.savefig(tmp)
+    with open(tmp, "rb") as f:
+        bytes = f.read()
+    os.unlink(tmp)
+    return HttpResponse(bytes, content_type="image/png")
+
 
 def repository_timeline_graph(request, pk):
     import tempfile

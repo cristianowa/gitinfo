@@ -205,6 +205,13 @@ class Repository(models.Model):
             d[commit.date] = commit.metrics
         return d
 
+    @property
+    def blame_timeline(self):
+        d = {}
+        for commit in self.commits:
+            d[commit.date] = commit.blame
+        return d
+
     def __repr__(self):
         return "< {url} >".format(url=self.url)
 
@@ -229,6 +236,10 @@ class Repository(models.Model):
     def depends_of(self):
         return [x.dependency for x in Submodule.objects.filter(holder=self)]
 
+    @property
+    def developers(self):
+        return [Commiter.objects.get(id=x[0]) for x in Commit.objects.values_list("commiter").distinct()]
+
 
 class Commit(models.Model):
     repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
@@ -247,6 +258,16 @@ class Commit(models.Model):
     def metrics(self):
         return dict(add=self.add, sub=self.sub, churn=self.churn, files=self.files_changed,
                     char_add=self.char_add, char_sub=self.char_sub, char_churn=self.char_churn)
+
+    @property
+    def blame(self):
+        result = {}
+        for dev in self.repository.developers:
+            try:
+                result[dev.email] = CommitBlamePercentage.objects.get(commit=self, commiter=dev).count
+            except CommitBlamePercentage.DoesNotExist:
+                result[dev.email] = 0
+        return result
 
     @classmethod
     def load_commits(cls, repository):
