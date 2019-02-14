@@ -2,6 +2,10 @@
 
 Have you ever wanted to know which developer, period is more productive (in terms of lines of code changed)? Well, this tools aims to provide some inside over it.
 
+## Requirements
+
+You need to install git-extra `sudo apt-get install git-extra` so all comands are avaialble.
+
 ## Installing
 
 For now, this is not published to pypi or dockerhub, so you have to use the source code or build the docker yourself.
