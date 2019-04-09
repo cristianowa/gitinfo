@@ -47,7 +47,6 @@ class Commit:
         self.parse_changes()
         self.merge = merge
         self.blame = {}
-        self.dev_porcentage()
 
     def parse_changes(self):
 #        ret = cmd("git log --oneline  --numstat {} -n 1".format(self.sha1))
@@ -95,7 +94,6 @@ class Commit:
         self.changes = dict(add=total_add, sub=total_sub, churn=churn,
                             lines=lines_changed,
                             added_chars=added_chars, removed_chars=removed_chars, churned_chars=churned_chars)
-        self.dev_porcentage()
 
     def dev_porcentage(self):
         # assumining git-extra installed!

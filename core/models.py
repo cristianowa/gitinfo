@@ -155,10 +155,10 @@ class Repository(models.Model):
                                   char_churn=commit.changes["churned_chars"],
                                   merge=commit.merge)
                 dbcommit.save()
-                for dev, count in commit.blame.items():
-                    commiter = Commiter.get(dev)
-                    cbp = CommitBlamePercentage(commiter=commiter, commit=dbcommit, count=count)
-                    cbp.save()
+                # for dev, count in commit.blame.items():
+                #     commiter = Commiter.get(dev)
+                #     cbp = CommitBlamePercentage(commiter=commiter, commit=dbcommit, count=count)
+                #     cbp.save()
 
         cmd("git submodule init")
         cmd("git submodule update")
