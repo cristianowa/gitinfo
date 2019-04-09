@@ -130,7 +130,7 @@ class Commit:
         return d
 
 class Commits(list):
-    def load_commits(self, wd=None):
+    def load_commits(self, wd=None, skip=None):
         if wd:
             cwd = os.getcwd()
             os.chdir(wd)
@@ -139,6 +139,8 @@ class Commits(list):
         commits = [x.split("|") for x in cmd("git log --pretty=format:\"%h|%ae|%cD\" --since=\"10000 days ago\" ").split("\n")]
         merges = cmd("git log --merges --oneline | cut -d ' ' -f 1").split("\n")
         for commit in commits[:-2]:
+            if skip and skip(commit[0]):
+                continue
             self.append(Commit(*commit, merge=commit[0] in merges))
         self.append(Commit(*commits[-1], first=True))
         if cwd:

@@ -134,7 +134,13 @@ class Repository(models.Model):
         cmd("git checkout origin/{}".format(self.branch))
         cmd("git checkout -B {}".format(self.branch))
         commits = gitinfo.Commits()
-        commits.load_commits(tmp)
+        def skip(sha1):
+            try:
+                c =Commit.objects.get(sha1=sha1)
+                return True
+            except Commit.DoesNotExist:
+                return False
+        commits.load_commits(tmp, skip=skip)
         for commit in commits:
             try:
                 dbcommit = Commit.objects.get(sha1=commit.sha1)
