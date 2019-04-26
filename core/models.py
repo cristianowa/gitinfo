@@ -8,8 +8,24 @@ from django.db import models
 # Create your models here.
 
 
+class Group(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    @classmethod
+    def add(cls, name):
+        try:
+            return cls.objects.get(name=name)
+        except cls.DoesNotExist:
+            group = cls(name=name)
+            group.save()
+            return group
+
+    def __repr__(self):
+        return "< {name} >".format(name=name)
+
 class Commiter(models.Model):
     email = models.CharField(max_length=100, unique=True)
+    groups = models.ManyToManyField(Group)
     def __repr__(self):
         return "< {email} >".format(email=self.email)
 
@@ -17,11 +33,14 @@ class Commiter(models.Model):
         return self.__repr__()
 
     @classmethod
-    def get(cls, email):
+    def get(cls, email, group=None):
         try:
             commiter = Commiter.objects.get(email=email)
         except Commiter.DoesNotExist:
             commiter = Commiter(email=email)
+            commiter.save()
+        if group:
+            commiter.groups.add(group)
             commiter.save()
         return commiter
 
@@ -35,24 +54,26 @@ class Commiter(models.Model):
     def update(self):
        CommitsMetrics.objects.filter(commiter=self).delete()
        for period in PeriodChoice:
-            days = re.findall("[0-9]+", period.name)[0]
-            period_start = datetime.today() - timedelta(days=int(days))
-            commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
-            repos = list(set([c.repository.url for c in commit_list]))
-            tags = list(Tag.objects.filter(commiter=self))
-            commit_metrics = CommitsMetrics(add=commit_list.add,
-                                            sub=commit_list.sub,
-                                            churn=commit_list.churn,
-                                            char_add=commit_list.char_add,
-                                            char_sub=commit_list.char_sub,
-                                            char_churn=commit_list.char_churn,
-                                            merges=commit_list.merges,
-                                            commiter=self,
-                                            tags=len(tags),
-                                            repositories=len(repos),
-                                            period=period
-                                            )
-            commit_metrics.save()
+           for group in self.groups.all():
+                days = re.findall("[0-9]+", period.name)[0]
+                period_start = datetime.today() - timedelta(days=int(days))
+                commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
+                repos = list(set([c.repository.url for c in commit_list]))
+                tags = list(Tag.objects.filter(commiter=self))
+                commit_metrics = CommitsMetrics(add=commit_list.add,
+                                                sub=commit_list.sub,
+                                                churn=commit_list.churn,
+                                                char_add=commit_list.char_add,
+                                                char_sub=commit_list.char_sub,
+                                                char_churn=commit_list.char_churn,
+                                                merges=commit_list.merges,
+                                                commiter=self,
+                                                tags=len(tags),
+                                                repositories=len(repos),
+                                                period=period,
+                                                group=group
+                                                )
+                commit_metrics.save()
 
     @property
     def repositories(self):
@@ -122,6 +143,7 @@ class CommitList(list):
 class Repository(models.Model):
     url = models.CharField(max_length=256, unique=True)
     branch = models.CharField(max_length=256, default="master")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     def update(self):
         from gitinfo import cmd
         import shutil
@@ -146,7 +168,7 @@ class Repository(models.Model):
                 dbcommit = Commit.objects.get(sha1=commit.sha1)
             except Commit.DoesNotExist:
                 # now we create it
-                commiter = Commiter.get(commit.commiter)
+                commiter = Commiter.get(commit.commiter, self.group)
                 commit.parse_changes()
                 dbcommit = Commit(sha1=commit.sha1,
                                   repository=self,
@@ -189,7 +211,7 @@ class Repository(models.Model):
         tags.load_tags(tmp)
         for tag in tags:
             if tag.tagger:
-                commiter = Commiter.objects.get(email=tag.tagger)
+                commiter = Commiter.get(tag.tagger, self.group)#Commiter.objects.get(email=tag.tagger)
             else:
                 commiter = None
             try:
@@ -353,6 +375,7 @@ class CommitsMetrics(models.Model):
     repositories = models.IntegerField(default=0)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     repo = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     period = models.CharField(
         max_length=15,
         choices=[(tag, tag.value) for tag in PeriodChoice]
@@ -425,7 +448,8 @@ class CommitsMetrics(models.Model):
         return values
 
     def __repr__(self):
-        return "< {period} - {commiter} - {repo} >".format(period=self.period, commiter=self.commiter.email,
+        return "< {period} - {commiter} - {repo} - {group} >".format(period=self.period, commiter=self.commiter.email,
+                                                           group=self.group.name,
                                                            repo=self.repo.url if self.repo else "None")
 
     def __str__(self):
