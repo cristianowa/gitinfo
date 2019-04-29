@@ -447,6 +447,10 @@ class CommitsMetrics(models.Model):
             values[k] = norm_func(v, high[k])
         return values
 
+    @classmethod
+    def groups_develop(cls, developer):
+        return list(set([cm.group for cm in cls.objects.filter(commiter=developer)]))
+
     def __repr__(self):
         return "< {period} - {commiter} - {repo} - {group} >".format(period=self.period, commiter=self.commiter.email,
                                                            group=self.group.name,

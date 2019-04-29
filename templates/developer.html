@@ -3,6 +3,13 @@
     {{ commiter.email }}
 </h4>
 <h6><a href="/developer/{{ commiter.id }}/info.csv"> information.csv </a></h6>
+<ul>
+    {% for group in groups%}
+    <li>
+        <a href="/developer/{{ commiter.id }}/ {{ group }}"> {{ group }} </a>
+    </li>
+    {% endfor %}
+</ul>
 <table>
     <tr>
         {% for key in metrics_names %}

@@ -161,7 +161,11 @@ def developer(request, pk):
     from .models import Commiter, CommitsMetrics
     commiter = Commiter.objects.get(id=pk)
     metrics = CommitsMetrics.metrics_developer(commiter)
-    return render(request, "developer.html", dict(commiter=commiter, metrics=metrics, metrics_names=[''] + list(list(metrics.values())[0].keys())))
+    groups = CommitsMetrics.groups_develop(commiter)
+    return render(request, "developer.html", dict(commiter=commiter,
+                                                  groups=groups,
+                                                  metrics=metrics,
+                                                  metrics_names=[''] + list(list(metrics.values())[0].keys())))
 
 
 def developer_radar(request, pk, days):
