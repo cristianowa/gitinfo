@@ -54,10 +54,13 @@ class Commiter(models.Model):
     def update(self):
        CommitsMetrics.objects.filter(commiter=self).delete()
        for period in PeriodChoice:
-           for group in self.groups.all():
+           for group in list(self.groups.all()) + [None]:
                 days = re.findall("[0-9]+", period.name)[0]
                 period_start = datetime.today() - timedelta(days=int(days))
-                commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
+                if group:
+                    commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start, repository__group=group))
+                else:
+                    commit_list = CommitList(Commit.objects.filter(commiter=self, date__gte=period_start))
                 repos = list(set([c.repository.url for c in commit_list]))
                 tags = list(Tag.objects.filter(commiter=self))
                 commit_metrics = CommitsMetrics(add=commit_list.add,
@@ -381,11 +384,10 @@ class CommitsMetrics(models.Model):
         choices=[(tag, tag.value) for tag in PeriodChoice]
     )
 
-    @classmethod
-    def max(cls):
+    def max(cls, group=None):
         d = {}
         for period in PeriodChoice:
-            all = [x.metrics for x in cls.objects.all()]
+            all = [x.metrics for x in CommitsMetrics.objects.filter(group=group)]
             d[str(period)] = {}
             for k in all[0].keys():
                 d[str(period)][k] = []
@@ -397,9 +399,9 @@ class CommitsMetrics(models.Model):
         return d
 
     @classmethod
-    def metrics_developer(cls, developer):
+    def metrics_developer(cls, developer, group=None):
         d = {}
-        for value in cls.objects.filter(commiter=developer):
+        for value in cls.objects.filter(commiter=developer, group=group):
             d[str(value.period)] = value.metrics
         return d
 
@@ -417,21 +419,21 @@ class CommitsMetrics(models.Model):
                     char_churn=int(self.char_churn))
 
     @classmethod
-    def metrics_norm_developer(cls, developer):
+    def metrics_norm_developer(cls, developer, group=None):
         d = {}
-        for value in cls.objects.filter(commiter=developer):
+        for value in cls.objects.filter(commiter=developer, group=group):
             k = list(filter(lambda v:str(value.period).__contains__(v.name),list(PeriodChoice)))[0].value
-            d[k] = value.metrics_norm
+            d[k] = value.metrics_norm(group)
         return d
 
-    @property
-    def metrics_norm(self):
+
+    def metrics_norm(self, group=None):
         def norm_func(value, high):
             from math import log
             high = high if high != 0 else 1
             return log(1 + (value/high)*100)
 
-        high = self.max()[self.period]
+        high = self.max(group=group)[self.period]
         #TODO: use self.metrics
         values = dict(add=self.add,
                     sub=self.sub,
@@ -453,7 +455,7 @@ class CommitsMetrics(models.Model):
 
     def __repr__(self):
         return "< {period} - {commiter} - {repo} - {group} >".format(period=self.period, commiter=self.commiter.email,
-                                                           group=self.group.name,
+                                                           group=self.group.name if self.group else "None",
                                                            repo=self.repo.url if self.repo else "None")
 
     def __str__(self):

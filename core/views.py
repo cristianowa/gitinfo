@@ -157,24 +157,25 @@ def developers(request):
     return render(request, "developers.html", dict(commiters=commiters))
 
 
-def developer(request, pk):
+def developer(request, pk, group=None):
     from .models import Commiter, CommitsMetrics
     commiter = Commiter.objects.get(id=pk)
-    metrics = CommitsMetrics.metrics_developer(commiter)
+    metrics = CommitsMetrics.metrics_developer(commiter, group=group)
     groups = CommitsMetrics.groups_develop(commiter)
+    groups.remove(None)
     return render(request, "developer.html", dict(commiter=commiter,
                                                   groups=groups,
                                                   metrics=metrics,
                                                   metrics_names=[''] + list(list(metrics.values())[0].keys())))
 
 
-def developer_radar(request, pk, days):
+def developer_radar(request, pk, days, group=None):
     from .models import Commiter, CommitsMetrics
     from .graphs import radar_plot
     import tempfile
     tmp = tempfile.mktemp(".png")
     commiter = Commiter.objects.get(id=pk)
-    raw_metrics = CommitsMetrics.metrics_norm_developer(commiter)
+    raw_metrics = CommitsMetrics.metrics_norm_developer(commiter, group=group)
     for k in  raw_metrics.keys():
         del raw_metrics[k]["files"]
     if days=="all":
@@ -193,7 +194,7 @@ def developer_radar(request, pk, days):
     os.unlink(tmp)
     return HttpResponse(bytes, content_type="image/png")
 
-def developer_csv(request, pk):
+def developer_csv(request, pk, group=None):
     import csv
     # Create the HttpResponse object with the appropriate CSV header.
     dev = Commiter.objects.get(id=pk)

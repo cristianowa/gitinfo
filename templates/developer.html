@@ -6,9 +6,12 @@
 <ul>
     {% for group in groups%}
     <li>
-        <a href="/developer/{{ commiter.id }}/ {{ group }}"> {{ group }} </a>
+        <a href="/developer/{{ commiter.id }}/{{ group.id }}"> {{ group.name }} </a>
     </li>
     {% endfor %}
+    <li>
+        <a href="/developer/{{ commiter.id }}/"> All developers </a>
+    </li>
 </ul>
 <table>
     <tr>
@@ -28,28 +31,28 @@
 <ul>
 
     <li>
-        <a href="/developer/{{ commiter.id }}/30/radar.png" alt="Developer Radar" height="400" width="400">
+        <a href="30/radar.png" alt="Developer Radar" height="400" width="400">
             <h5> Radar 30 Days </h5></a>
     </li>
     <li>
-        <a href="/developer/{{ commiter.id }}/60/radar.png" alt="Developer Radar" height="400" width="400">
+        <a href="60/radar.png" alt="Developer Radar" height="400" width="400">
             <h5> Radar 60 Days </h5></a>
     </li>
     <li>
-        <a href="/developer/{{ commiter.id }}/90/radar.png" alt="Developer Radar" height="400" width="400">
+        <a href="90/radar.png" alt="Developer Radar" height="400" width="400">
             <h5> Radar 90 Days </h5></a>
     </li>
     <li>
-        <a href="/developer/{{ commiter.id }}/180/radar.png" alt="Developer Radar" height="400" width="400">
+        <a href="180/radar.png" alt="Developer Radar" height="400" width="400">
             <h5> Radar 180 Days </h5></a>
     </li>
     <li>
-        <a href="/developer/{{ commiter.id }}/360/radar.png" alt="Developer Radar" height="400" width="400">
+        <a href="360/radar.png" alt="Developer Radar" height="400" width="400">
             <h5> Radar 360 Days </h5></a>
     </li>
 </ul>
 <table>
- <img src="/developer/{{ commiter.id }}/all/radar.png" alt="Developer Radar" height="800" width="1000">
+ <img src="all/radar.png" alt="Developer Radar" height="800" width="1000">
 </table>
 <br>
 <br>
