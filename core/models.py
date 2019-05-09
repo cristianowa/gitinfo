@@ -4,7 +4,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 
 from django.db import models
-
+from django.conf import settings
 # Create your models here.
 
 
@@ -21,7 +21,7 @@ class Group(models.Model):
             return group
 
     def __repr__(self):
-        return "< {name} >".format(name=name)
+        return "< {name} >".format(name=self.name)
 
 class Commiter(models.Model):
     email = models.CharField(max_length=100, unique=True)
@@ -34,6 +34,8 @@ class Commiter(models.Model):
 
     @classmethod
     def get(cls, email, group=None):
+        if settings.IGNORE_DOMAIN:
+            email = email.split("@")[0]
         try:
             commiter = Commiter.objects.get(email=email)
         except Commiter.DoesNotExist:
