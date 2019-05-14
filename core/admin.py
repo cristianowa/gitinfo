@@ -15,9 +15,9 @@ class RepositoryAdmin(admin.ModelAdmin):
 admin.site.register(Repository, RepositoryAdmin)
 
 admin.site.register(CommitErrorType)
-class RepositoryAdmin(admin.ModelAdmin):
-    search_fields = ["url"]
-admin.site.register(Submodule)
+class SubmoduleAdmin(admin.ModelAdmin):
+    search_fields = ["url", "holder__url","dependency__url"]
+admin.site.register(Submodule, SubmoduleAdmin)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ["commit__sha", "commiter__email"]
 admin.site.register(Tag, TagAdmin)
