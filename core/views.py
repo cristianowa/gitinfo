@@ -280,7 +280,15 @@ def repository_timeline_graph(request, pk):
 
 def submodules(request):
     from .models import Submodule
+    import networkx as nx
     submodules = Submodule.objects.all()
+    G = nx.Graph()
+    for sb in submodules:
+        G.add_edge(sb.holder.url, sb.url)
+        G.add_node(sb.holder.url)
+        G.add_node(sb.url)
+        print(sb.holder.url, sb.url)
+    print(G.graph)
     return render(request, "submodules.html", dict())
 
 def submodule_dependency_graph(request):
