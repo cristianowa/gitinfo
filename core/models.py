@@ -108,6 +108,10 @@ class Commiter(models.Model):
         fp.write(pd.DataFrame.from_dict(self.metrics).to_csv())
         fp.write("\nMetrics Normalized\n")
         fp.write(pd.DataFrame.from_dict(self.metrics_normalized).to_csv())
+        for group in self.groups.all():
+            fp.write("\nMetrics Normalized - {}\n".format(group.name))
+            cm = CommitsMetrics.metrics_norm_developer(self, group=group)
+            fp.write(pd.DataFrame.from_dict(cm).to_csv())
         fp.write("\nRepositories\n")
         fp.write(pd.DataFrame.from_dict(self.repositories).to_csv())
 
