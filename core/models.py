@@ -114,6 +114,10 @@ class Commiter(models.Model):
             fp.write(pd.DataFrame.from_dict(cm).to_csv())
         fp.write("\nRepositories\n")
         fp.write(pd.DataFrame.from_dict(self.repositories).to_csv())
+        fp.write("\nGroups\n")
+        for group in self.groups.all():
+            fp.write("{}\n".format(group.name))
+
 
 class CommitList(list):
     @property
