@@ -71,6 +71,7 @@ class Commiter(models.Model):
                                                 char_add=commit_list.char_add,
                                                 char_sub=commit_list.char_sub,
                                                 char_churn=commit_list.char_churn,
+                                                commits=commit_list.commits,
                                                 merges=commit_list.merges,
                                                 commiter=self,
                                                 tags=len(tags),
