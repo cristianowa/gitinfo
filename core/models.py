@@ -141,6 +141,10 @@ class CommitList(list):
         return sum([commit.char_sub for commit in self])
 
     @property
+    def commits(self):
+        return len(self)
+
+    @property
     def char_churn(self):
         return sum([commit.char_churn for commit in self])
 
@@ -386,6 +390,7 @@ class CommitsMetrics(models.Model):
     merges = models.IntegerField(default=0)
     tags = models.IntegerField(default=0)
     repositories = models.IntegerField(default=0)
+    commits = models.IntegerField(default=0)
     commiter = models.ForeignKey(Commiter, on_delete=models.CASCADE)
     repo = models.ForeignKey(Repository, on_delete=models.CASCADE, null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
@@ -422,6 +427,7 @@ class CommitsMetrics(models.Model):
                     churn=int(self.churn),
                     merges=int(self.merges),
                     char_add=int(self.char_add),
+                    commits=int(self.commits),
                     char_sub=int(self.char_sub),
                     files=int(self.files_changed),
                     tags=int(self.tags),
@@ -450,6 +456,7 @@ class CommitsMetrics(models.Model):
                     churn=self.churn,
                     merges=self.merges,
                     char_add=self.char_add,
+                    commits=int(self.commits),
                     files=self.files_changed,
                     tags=self.tags,
                     repositories=self.repositories,
